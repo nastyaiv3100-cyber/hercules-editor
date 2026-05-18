@@ -162,7 +162,7 @@
 async function loadGameData() {
   const params = new URLSearchParams(window.location.search);
   
-  // Primary: ?d= compressed data (deflate-raw + base64url)
+  // Primary: ?d= compressed (deflate-raw + base64url)
   const d = params.get('d');
   if (d) {
     try {
@@ -170,11 +170,34 @@ async function loadGameData() {
       const bin = atob(b64);
       const bytes = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-      const text = await new Response(stream).text();
+      if (typeof DecompressionStream === 'undefined') throw new Error('DecompressionStream not supported');
+      const cs = new DecompressionStream('deflate-raw');
+      const writer = cs.writable.getWriter();
+      const reader = cs.readable.getReader();
+      writer.write(bytes.buffer);
+      writer.close();
+      const chunks = [];
+      while (true) { const {done,value} = await reader.read(); if(done) break; chunks.push(value); }
+      const total = chunks.reduce((n,c)=>n+c.length,0);
+      const out = new Uint8Array(total);
+      let off = 0; for (const c of chunks) { out.set(c,off); off+=c.length; }
+      const text = new TextDecoder().decode(out);
       return JSON.parse(text);
     } catch(err) {
-      showError('Ошибка загрузки: ' + err.message + '. Сгенерируйте новую ссылку в редакторе.');
+      showError('Ошибка декомпрессии: ' + err.message + '. Сгенерируйте новую ссылку.');
+      return null;
+    }
+  }
+
+  // Fallback: ?j= plain base64 JSON (no compression)
+  const j = params.get('j');
+  if (j) {
+    try {
+      const b64 = j.replace(/-/g,'+').replace(/_/g,'/');
+      const json = decodeURIComponent(escape(atob(b64)));
+      return JSON.parse(json);
+    } catch(err) {
+      showError('Ошибка загрузки: ' + err.message);
       return null;
     }
   }
