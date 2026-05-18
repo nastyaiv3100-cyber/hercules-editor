@@ -454,6 +454,30 @@ function t(label,key,val){
 // ═══════════════════════════════════
 // RENDER EDITOR
 // ═══════════════════════════════════
+function setPath(obj, path, val) {
+  const keys = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (cur[keys[i]] === undefined) return;
+    cur = cur[keys[i]];
+  }
+  const last = keys[keys.length - 1];
+  cur[last] = (val !== '' && !isNaN(val) && val.trim && val.trim() !== '')
+    ? (Number.isInteger(Number(val)) ? parseInt(val) : parseFloat(val))
+    : val;
+}
+
+function bindAll() {
+  // .gf fields with data-gk get two-way binding
+  document.querySelectorAll('.gf[data-gk]').forEach(el => {
+    if (el._bound) return;
+    el._bound = true;
+    const upd = function() { setPath(G, this.dataset.gk, this.value); schedulePreview(); };
+    el.addEventListener('input', upd);
+    el.addEventListener('change', upd);
+  });
+}
+
 function renderEditor() {
   const fns={start:rStart,game:rGame,tasks:rTasks,overlays:rOverlays,colors:rColors,images:rImages,export:rExport};
   document.getElementById('editorContent').innerHTML = (fns[curSec]||rStart)();
@@ -516,6 +540,101 @@ ${img('🌄 Фон (старт + игра)','start.bgUrl',s.bgUrl)}
 ${img('🧩 Фон пазла (под тайлами)','game.puzzleImgUrl',g.puzzleImgUrl)}
 ${img('🏆 Открытка (финал)','game.revealImgUrl',g.revealImgUrl)}
 </div></div>`;}
+
+const TYPES={truefalse:'✔ Верно/Неверно',match:'↔ Соединение',multichoice:'☑ Множ.выбор',order:'⇅ Порядок',fill:'✏ Вписать',wordguess:'🔡 Угадай слово'};
+function rTasks(){
+  const ok=G.game.cols*G.game.rows===G.puzzles.length;
+  return`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div class="sec-title" style="margin-bottom:0">📝 Задания (${G.puzzles.length})</div>
+    <button class="btn btn-dashed btn-sm" onclick="addTask()">+ Добавить</button>
+  </div>
+  <div class="note ${ok?'note-green':'note-gold'}" style="margin-bottom:10px">Заданий: ${G.puzzles.length}, сетка: ${G.game.cols}×${G.game.rows}=${G.game.cols*G.game.rows}. ${ok?'✅ Совпадает.':'⚠️ Не совпадает!'}</div>
+  ${G.puzzles.map((p,i)=>`
+  <div class="tcard" id="tc-${i}">
+    <div class="tcard-hdr" onclick="toggleT(${i})">
+      <div class="tnum">${i+1}</div>
+      <input class="ttedit" value="${esc(p.title)}" onclick="event.stopPropagation()" onchange="G.puzzles[${i}].title=this.value;renderTaskNav();schedulePreview()"/>
+      <select class="ttsel" onchange="changeType(${i},this.value)" onclick="event.stopPropagation()">
+        ${Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${p.type===k?' selected':''}>${v}</option>`).join('')}
+      </select>
+      <button class="del-btn" onclick="event.stopPropagation();delTask(${i})">×</button>
+    </div>
+    <div class="tbody${openTaskIdx===i?' open':''}" id="tb-${i}">${rTB(p,i)}</div>
+  </div>`).join('')}
+  <button class="btn btn-dashed" onclick="addTask()" style="width:100%;justify-content:center;margin-top:4px">+ Добавить задание</button>`;}
+
+function rTB(p,i){
+  let h=`<div class="fr"><div class="fl">Вопрос</div><textarea class="tai" style="min-height:40px" oninput="G.puzzles[${i}].question=this.value;schedulePreview()">${esc(p.question)}</textarea></div>`;
+  if(p.type==='truefalse'){
+    h+=`<div class="sub-lbl">Утверждения</div>`;
+    (p.statements||[]).forEach((st,si)=>{h+=`<div class="stmt-row">
+      <input type="text" value="${esc(st.text)}" oninput="G.puzzles[${i}].statements[${si}].text=this.value;schedulePreview()" placeholder="Утверждение..."/>
+      <div class="tc-wrap">
+        <button class="tc${st.answer==='true'?' at':''}" onclick="setSA(${i},${si},'true')">ВЕРНО</button>
+        <button class="tc${st.answer==='false'?' af':''}" onclick="setSA(${i},${si},'false')">НЕТ</button>
+      </div>
+      <button class="del-btn" onclick="rmItem(${i},'statements',${si})">×</button>
+    </div>`;});
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addItem(${i},'statements',{text:'Утверждение',answer:'true'})">+ Утверждение</button>`;
+  } else if(p.type==='match'){
+    h+=`<div class="sub-lbl">Пары (левый → правый/ответ)</div>`;
+    (p.pairs||[]).forEach((pr,pi)=>{h+=`<div class="pair-row">
+      <input type="text" value="${esc(pr.left)}" oninput="G.puzzles[${i}].pairs[${pi}].left=this.value;schedulePreview()" placeholder="Левый..."/>
+      <div class="pair-arr">→</div>
+      <input type="text" value="${esc(pr.answer)}" oninput="G.puzzles[${i}].pairs[${pi}].answer=this.value;schedulePreview()" placeholder="Ответ..."/>
+      <button class="del-btn" onclick="rmItem(${i},'pairs',${pi})">×</button>
+    </div>`;});
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addItem(${i},'pairs',{left:'',answer:''})">+ Пара</button>`;
+    h+=`<div class="sub-lbl" style="margin-top:10px">Все варианты (включая ложные)</div>`;
+    (p.options||[]).forEach((opt,oi)=>{h+=`<div style="display:flex;gap:5px;margin-bottom:4px">
+      <input type="text" value="${esc(opt)}" oninput="G.puzzles[${i}].options[${oi}]=this.value;schedulePreview()" style="flex:1" placeholder="Вариант..."/>
+      <button class="del-btn" onclick="rmOpt(${i},${oi})">×</button>
+    </div>`;});
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addOpt(${i})">+ Вариант</button>`;
+  } else if(p.type==='multichoice'){
+    (p.questions||[]).forEach((q,qi)=>{h+=`<div class="mc-qblock">
+      <div style="display:flex;gap:5px;margin-bottom:6px">
+        <input type="text" value="${esc(q.q)}" oninput="G.puzzles[${i}].questions[${qi}].q=this.value;schedulePreview()" style="flex:1" placeholder="Вопрос..."/>
+        <button class="del-btn" onclick="rmMCQ(${i},${qi})">×</button>
+      </div>
+      <div style="font-size:9px;color:#353850;margin-bottom:4px">Варианты (● = правильный):</div>
+      <div class="mc-opts">`;
+      (q.options||[]).forEach((opt,oi)=>{h+=`<div class="mc-opt-row">
+        <input type="radio" name="mc${i}q${qi}" class="rc" ${q.answer===oi?'checked':''} onchange="G.puzzles[${i}].questions[${qi}].answer=${oi};schedulePreview()"/>
+        <input type="text" value="${esc(opt)}" oninput="G.puzzles[${i}].questions[${qi}].options[${oi}]=this.value;schedulePreview()" style="flex:1;min-width:0" placeholder="Вариант..."/>
+      </div>`;});
+      h+=`</div></div>`;});
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addMCQ(${i})">+ Вопрос</button>`;
+  } else if(p.type==='order'){
+    h+=`<div style="display:grid;grid-template-columns:1fr 60px;gap:5px;margin-bottom:4px"><div style="font-size:9px;color:#353850">Элемент</div><div style="font-size:9px;color:#353850;text-align:center">№ позиция</div></div>`;
+    (p.items||[]).forEach((it,ii)=>{h+=`<div class="order-row">
+      <input type="text" value="${esc(it.text)}" oninput="G.puzzles[${i}].items[${ii}].text=this.value;schedulePreview()" placeholder="Элемент..."/>
+      <input type="text" value="${esc(it.answer)}" oninput="G.puzzles[${i}].items[${ii}].answer=this.value;schedulePreview()" style="text-align:center" placeholder="#"/>
+      <button class="del-btn" onclick="rmItem(${i},'items',${ii})">×</button>
+    </div>`;});
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addItem(${i},'items',{text:'',answer:'1'})">+ Элемент</button>`;
+  } else if(p.type==='fill'){
+    if(!p.items) p.items=[];
+    h+=`<div style="display:grid;grid-template-columns:1fr 1fr 70px;gap:5px;margin-bottom:4px"><div style="font-size:9px;color:#353850">До пропуска</div><div style="font-size:9px;color:#353850">После пропуска</div><div style="font-size:9px;color:#353850">Ответ</div></div>`;
+    p.items.forEach((it,ii)=>{h+=`<div style="display:grid;grid-template-columns:1fr 1fr 70px 24px;gap:5px;margin-bottom:5px;align-items:center">
+      <input type="text" value="${esc(it.before||'')}" oninput="G.puzzles[${i}].items[${ii}].before=this.value;schedulePreview()" placeholder="До..."/>
+      <input type="text" value="${esc(it.after||'')}" oninput="G.puzzles[${i}].items[${ii}].after=this.value;schedulePreview()" placeholder="После..."/>
+      <input type="text" value="${esc(it.inp||'')}" oninput="G.puzzles[${i}].items[${ii}].inp=this.value;schedulePreview()" placeholder="Ответ"/>
+      <button class="del-btn" onclick="rmItem(${i},'items',${ii})">×</button>
+    </div>`;});
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addItem(${i},'items',{before:'',after:'',inp:''})">+ Пропуск</button>`;
+  } else if(p.type==='wordguess'){
+    if(!p.clues) p.clues=[];
+    h+=`<div style="display:grid;grid-template-columns:1fr 120px;gap:5px;margin-bottom:4px"><div style="font-size:9px;color:#353850">Подсказка</div><div style="font-size:9px;color:#353850">Ответ</div></div>`;
+    p.clues.forEach((cl,ci)=>{h+=`<div style="display:grid;grid-template-columns:1fr 120px 24px;gap:5px;margin-bottom:5px;align-items:center">
+      <input type="text" value="${esc(cl.hint||'')}" oninput="G.puzzles[${i}].clues[${ci}].hint=this.value;schedulePreview()" placeholder="Подсказка..."/>
+      <input type="text" value="${esc(cl.answer||'')}" oninput="G.puzzles[${i}].clues[${ci}].answer=this.value;schedulePreview()" placeholder="Ответ"/>
+      <button class="del-btn" onclick="rmClue(${i},${ci})">×</button>
+    </div>`;});
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addClue(${i})">+ Подсказка</button>`;
+  }
+  return h;
+}
 
 function rExport(){
   const url = getShareURL();
