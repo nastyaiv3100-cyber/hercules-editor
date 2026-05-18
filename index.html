@@ -305,28 +305,39 @@ let pvTimer = null, pvDevice = 'desktop';
 // ═══════════════════════════════════
 // LIVE PREVIEW — debounced 600ms
 // ═══════════════════════════════════
+function toast(msg, duration=2200) {
+  let el = document.getElementById('toast');
+  if (!el) { el = document.createElement('div'); el.id = 'toast'; el.className = 'toast'; document.body.appendChild(el); }
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove('show'), duration);
+}
+
 function schedulePreview() {
   clearTimeout(pvTimer);
   const dot = document.getElementById('liveDot');
   if (dot) { dot.style.background = '#f6c35b'; dot.style.animation = 'none'; }
-  pvTimer = setTimeout(()=>{
-    loadPreview();
-  }, 400);
+  pvTimer = setTimeout(() => loadPreview(), 600);
 }
 
-function loadPreview() {
+async function loadPreview() {
   const frame = document.getElementById('previewFrame');
   if (!frame) return;
   const overlay = document.getElementById('pvOverlay');
-  if (overlay) overlay.classList.remove('hidden');
-  const code = buildHTML();
-  generatedCode = code;
   const dot = document.getElementById('liveDot');
-  frame.onload = () => {
+  if (overlay) overlay.classList.remove('hidden');
+  try {
+    const url = await buildShareURL();
+    frame.onload = () => {
+      if (overlay) overlay.classList.add('hidden');
+      if (dot) { dot.style.background = '#7edb8a'; dot.style.animation = ''; }
+    };
+    frame.src = url;
+  } catch(e) {
     if (overlay) overlay.classList.add('hidden');
-    if (dot) { dot.style.background = '#7edb8a'; dot.style.animation = ''; }
-  };
-  frame.srcdoc = code;
+    console.error('Preview error:', e);
+  }
 }
 
 function forceReload() { loadPreview(); toast('↺ Обновлено'); }
@@ -368,11 +379,14 @@ function applyDeviceSize() {
   loadPreview();
 }
 
-function openFullscreen() {
+async function openFullscreen() {
   const ov = document.getElementById('fsOverlay');
   const fr = document.getElementById('fsFrame');
   ov.classList.add('open');
-  fr.srcdoc = buildHTML();
+  try {
+    const url = await buildShareURL();
+    fr.src = url;
+  } catch(e) { console.error('Fullscreen error:', e); }
 }
 function closeFullscreen() {
   document.getElementById('fsOverlay').classList.remove('open');
@@ -668,15 +682,34 @@ function getPlayBase() {
 
 async function buildShareURL() {
   const json = JSON.stringify(G);
-  // Use CompressionStream (built into all modern browsers, no CDN)
-  const blob = new Blob([json]);
-  const stream = blob.stream().pipeThrough(new CompressionStream('deflate-raw'));
-  const buf = await new Response(stream).arrayBuffer();
-  const bytes = new Uint8Array(buf);
-  let bin = '';
-  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  const b64 = btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-  return getPlayBase() + '?d=' + b64;
+  try {
+    // Try CompressionStream (Chrome 80+, Firefox 113+, Safari 16.4+)
+    if (typeof CompressionStream === 'undefined') throw new Error('CompressionStream not supported');
+    const blob = new Blob([new TextEncoder().encode(json)]);
+    const cs = new CompressionStream('deflate-raw');
+    const writer = cs.writable.getWriter();
+    const reader = cs.readable.getReader();
+    writer.write(await blob.arrayBuffer());
+    writer.close();
+    const chunks = [];
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+    const total = chunks.reduce((n,c)=>n+c.length,0);
+    const buf = new Uint8Array(total);
+    let off = 0;
+    for (const c of chunks) { buf.set(c, off); off += c.length; }
+    let bin = '';
+    for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+    const b64 = btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+    return getPlayBase() + '?d=' + b64;
+  } catch(e) {
+    // Fallback: plain base64 JSON (no compression)
+    const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+    return getPlayBase() + '?j=' + b64;
+  }
 }
 
 async function publishGame() {
