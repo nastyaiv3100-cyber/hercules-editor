@@ -924,10 +924,31 @@ function getShareURL() {
 // ═══════════════════════════════════
 // INIT
 // ═══════════════════════════════════
-window.addEventListener('resize', ()=>{ if(pvDevice==='desktop') applyDeviceSize(); });
-attachGlobalDelegation();
-renderEditor();
-setTimeout(()=>applyDeviceSize(), 150);
+function attachGlobalDelegation() {
+  const ep = document.getElementById('editorPanel');
+  if (!ep) return;
+  ep.addEventListener('input', function(e){
+    const t = e.target;
+    if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT') {
+      if(t.dataset && t.dataset.gk) setPath(G, t.dataset.gk, t.value);
+      schedulePreview();
+    }
+  }, true);
+  ep.addEventListener('change', function(e){
+    const t = e.target;
+    if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT') {
+      if(t.dataset && t.dataset.gk) setPath(G, t.dataset.gk, t.value);
+      schedulePreview();
+    }
+  }, true);
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  window.addEventListener('resize', ()=>{ if(pvDevice==='desktop') applyDeviceSize(); });
+  attachGlobalDelegation();
+  renderEditor();
+  setTimeout(()=>applyDeviceSize(), 200);
+});
 </script>
 </body>
 </html>
