@@ -160,42 +160,41 @@
 // ══════════════════════════════════════════
 
 async function loadGameData() {
-  // Support both ?g=GIST_ID (new) and #HASH (legacy)
   const params = new URLSearchParams(window.location.search);
-  const gistId = params.get('g');
   
-  if (gistId) {
-    // Load from GitHub Gist
+  // Primary: ?d= compressed data (deflate-raw + base64url)
+  const d = params.get('d');
+  if (d) {
     try {
-      const resp = await fetch('https://api.github.com/gists/' + gistId, {
-        headers: {'Accept': 'application/vnd.github+json'}
-      });
-      if (!resp.ok) throw new Error('Gist not found (HTTP ' + resp.status + ')');
-      const gist = await resp.json();
-      const fileKey = Object.keys(gist.files)[0];
-      const jsonText = gist.files[fileKey].content;
-      return JSON.parse(jsonText);
+      const b64 = d.replace(/-/g,'+').replace(/_/g,'/');
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      const text = await new Response(stream).text();
+      return JSON.parse(text);
     } catch(err) {
-      showError('Ошибка загрузки данных: ' + err.message);
+      showError('Ошибка загрузки: ' + err.message + '. Сгенерируйте новую ссылку в редакторе.');
       return null;
     }
   }
-  
-  // Legacy: try hash
-  const hash = window.location.hash.slice(1);
-  if (hash) {
+
+  // Legacy: ?g= GitHub Gist
+  const g = params.get('g');
+  if (g) {
     try {
-      const json = decodeURIComponent(atob(hash.replace(/-/g,'+').replace(/_/g,'/')));
-      return JSON.parse(json);
-    } catch(e) {
-      // Try raw JSON
-      try { return JSON.parse(decodeURIComponent(hash)); } catch(e2) {}
+      const resp = await fetch('https://api.github.com/gists/' + g, {headers:{'Accept':'application/vnd.github+json'}});
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const gist = await resp.json();
+      const key = Object.keys(gist.files)[0];
+      return JSON.parse(gist.files[key].content);
+    } catch(err) {
+      showError('Ошибка загрузки Gist: ' + err.message);
+      return null;
     }
-    showError('Не удалось загрузить данные. Пожалуйста, создайте новую ссылку в редакторе.');
-    return null;
   }
-  
-  showError('Нет данных игры. Откройте редактор и нажмите «Опубликовать».');
+
+  showError('Нет данных игры. Откройте редактор и нажмите «Сгенерировать ссылку».');
   return null;
 }
 
