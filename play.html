@@ -222,13 +222,18 @@ async function loadGameData() {
 }
 
 function showError(msg) {
-  document.addEventListener('DOMContentLoaded', function() {
+  function doShow() {
     document.body.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#0B1E4F;color:#F6C35B;font-family:sans-serif;font-size:16px;text-align:center;padding:30px;gap:16px">'
       + '<div style="font-size:40px">⚠️</div>'
       + '<div>' + msg + '</div>'
       + '<div style="color:#57D6FF;font-size:12px;margin-top:8px">Hercules Editor</div>'
       + '</div>';
-  });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', doShow);
+  } else {
+    doShow();
+  }
 }
 
 // Start loading immediately
@@ -244,7 +249,7 @@ window.__gameDataPromise = loadGameData();
     <h1 class="start-title" id="startTitle"></h1>
     <div class="start-subtitle" id="startSubtitle"></div>
     <p class="start-sub" id="startDesc"></p>
-    <button class="m-btn m-btn-gold start-play-btn" id="startButton" id="startBtn">Загрузка...</button>
+    <button class="m-btn m-btn-gold start-play-btn" id="startBtn">Загрузка...</button>
     <div class="start-footer" id="startFooter"></div>
   </div>
 </section>
@@ -310,8 +315,14 @@ window.__gameDataPromise = loadGameData();
 <script>
 document.addEventListener("DOMContentLoaded", async function() {
   // Wait for game data to load
-  const D = await window.__gameDataPromise;
-  if (!D) return; // error already shown
+  let D;
+  try {
+    D = await window.__gameDataPromise;
+  } catch(e) {
+    showError('Ошибка загрузки игры: ' + e.message);
+    return;
+  }
+  if (!D) return; // error already shown by loadGameData
 
   const s = D.start, g = D.game, o = D.overlays, c = D.colors;
   const COLS = parseInt(g.cols)||3, ROWS = parseInt(g.rows)||2;
@@ -336,7 +347,7 @@ document.addEventListener("DOMContentLoaded", async function() {
   function sa(id,attr,val){var el=document.getElementById(id);if(el)el.setAttribute(attr,val);}
   st('startBadge', s.badge); st('startIcon', s.icon); st('startTitle', s.title);
   st('startSubtitle', s.subtitle); st('startDesc', s.description);
-  document.getElementById('startBtn').textContent = s.btnText;
+  document.getElementById('startButton').textContent = s.btnText;
   st('startFooter', s.footer);
   st('tbIcon', g.topIcon); st('tbTitle', g.topTitle); st('tbSub', g.topSub);
   st('progressIcon', g.progressIcon);
