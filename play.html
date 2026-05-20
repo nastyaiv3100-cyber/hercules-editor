@@ -325,8 +325,14 @@ document.addEventListener("DOMContentLoaded", async function() {
   if (!D) return; // error already shown by loadGameData
 
   const s = D.start, g = D.game, o = D.overlays, c = D.colors;
-  const COLS = parseInt(g.cols)||3, ROWS = parseInt(g.rows)||2;
+  // Auto-fit grid to puzzle count
   const TOTAL = D.puzzles.length;
+  let COLS = parseInt(g.cols)||3;
+  let ROWS = parseInt(g.rows)||2;
+  // If grid doesn't fit, auto-expand rows
+  if (COLS * ROWS < TOTAL) {
+    ROWS = Math.ceil(TOTAL / COLS);
+  }
 
   // Apply CSS variables dynamically
   const style = document.createElement('style');
@@ -389,7 +395,20 @@ else if(p.type==="order"){ok=zOrderInps.every(({inp,answer})=>inp.value.trim()==
 else if(p.type==="multichoice"){ok=zMCState.every(s=>s.selected!==null&&s.selected===s.answer);}
 else if(p.type==="wordguess"){ok=zWordInps.every(({inp,answer})=>inp.value.trim().toLowerCase()===String(answer).toLowerCase());if(ok)zWordInps.forEach(({inp})=>inp.classList.add("correct"));else zWordInps.forEach(({inp,answer})=>{if(inp.value.trim().toLowerCase()!==String(answer).toLowerCase())inp.classList.add("wrong");});}
 if(ok){setTimeout(()=>{zoomOverlay.classList.remove("active");zoomActive=false;openTile(zoomIdx);},400);}else{wrongAttempts++;zoomOverlay.classList.remove("active");zoomActive=false;errorOverlay.classList.add("visible");playSound(errorSound);}});
-function createTiles(){tilesGrid.innerHTML="";puzzles.forEach((_,i)=>tilesGrid.appendChild(createTile(i)));}
+function createTiles(){
+  tilesGrid.innerHTML="";
+  puzzles.forEach((_,i)=>tilesGrid.appendChild(createTile(i)));
+  // Fix orphan tiles: last row tiles should be same size as others
+  const orphans = TOTAL % COLS;
+  if (orphans !== 0) {
+    // Add empty placeholder tiles to fill the last row
+    for (let j = 0; j < (COLS - orphans); j++) {
+      const placeholder = document.createElement('div');
+      placeholder.style.cssText = 'background:rgba(11,30,79,0.3);border:1px solid rgba(246,195,91,0.08);';
+      tilesGrid.appendChild(placeholder);
+    }
+  }
+}
 const TILE_ICONS=puzzles.map(p=>{const m=p.title.match(/^(\\S+)/);return m?m[1]:"📌";});
 function createTile(i){const p=puzzles[i];const tile=document.createElement("div");tile.className="puzzle-tile";tile.id="tile-"+i;const inner=document.createElement("div");inner.className="puzzle-tile-inner";const topRow=document.createElement("div");topRow.className="tile-top-row";const hdr=document.createElement("div");hdr.className="tile-header";hdr.textContent=TILE_ICONS[i]+" Задание "+(i+1);const zBtn=document.createElement("button");zBtn.className="tile-zoom-btn";zBtn.textContent="🔍";zBtn.addEventListener("click",e=>{e.stopPropagation();openZoom(i);});topRow.append(hdr,zBtn);const scroll=document.createElement("div");scroll.className="tile-scroll-area";const q=document.createElement("div");q.className="tile-question";q.textContent=p.question;scroll.appendChild(q);const btn=document.createElement("button");btn.className="tile-button";btn.textContent="Выполнить →";btn.addEventListener("click",e=>{e.stopPropagation();openZoom(i);});inner.append(topRow,scroll,btn);tile.appendChild(inner);tile.addEventListener("click",()=>openZoom(i));return tile;}
 function openTile(index){const tile=document.getElementById("tile-"+index);if(!tile||tile.classList.contains("disabled"))return;const col=index%COLS,row=Math.floor(index/COLS);tile.innerHTML="";tile.classList.add("disabled");tile.style.cursor="default";const img=document.createElement("div");img.style.cssText='position:absolute;inset:0;background:url("'+window.__G__.g.revealImgUrl+'") no-repeat;background-size:'+(COLS*100)+'% '+(ROWS*100)+'%;background-position:'+(COLS>1?col/(COLS-1)*100:0)+'% '+(ROWS>1?row/(ROWS-1)*100:0)+'%;';tile.appendChild(img);spawnTileWow(tile);spawnBoom(tile);spawnParticles(tile);playSound(flipSound);openedTiles++;updateProgress();if(openedTiles>=TOTAL)setTimeout(showPicture,700);}
