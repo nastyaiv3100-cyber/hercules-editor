@@ -649,6 +649,67 @@ function rTB(p,i){
   return h;
 }
 
+// ═══════════════════════════════════
+// TASK MUTATIONS
+// ═══════════════════════════════════
+function toggleT(i){openTaskIdx=openTaskIdx===i?null:i;renderEditor();}
+
+function changeType(i,t){
+  G.puzzles[i].type=t; const p=G.puzzles[i];
+  if(t==='truefalse'&&!p.statements) p.statements=[{text:'Утверждение',answer:'true'}];
+  if(t==='match'&&!p.pairs){p.pairs=[{left:'',answer:''}];p.options=[''];}
+  if(t==='multichoice'&&!p.questions) p.questions=[{q:'',options:['А)','Б)','В)','Г)'],answer:0}];
+  if(t==='order'&&!p.items) p.items=[{text:'',answer:'1'}];
+  if(t==='fill'&&!p.items) p.items=[{before:'',after:'',inp:''}];
+  if(t==='wordguess'&&!p.clues) p.clues=[{hint:'',answer:''}];
+  openTaskIdx=i; renderEditor(); schedulePreview();
+}
+
+function setSA(i,si,v){G.puzzles[i].statements[si].answer=v;reTask(i);schedulePreview();}
+
+function addItem(i,k,tpl){
+  if(!G.puzzles[i][k]) G.puzzles[i][k]=[];
+  G.puzzles[i][k].push({...tpl});
+  reTask(i); schedulePreview();
+}
+function rmItem(i,k,idx){G.puzzles[i][k].splice(idx,1);reTask(i);schedulePreview();}
+
+function addOpt(i){G.puzzles[i].options.push('');reTask(i);schedulePreview();}
+function rmOpt(i,oi){G.puzzles[i].options.splice(oi,1);reTask(i);schedulePreview();}
+
+function addMCQ(i){
+  G.puzzles[i].questions.push({q:'',options:['А)','Б)','В)','Г)'],answer:0});
+  reTask(i); schedulePreview();
+}
+function rmMCQ(i,qi){G.puzzles[i].questions.splice(qi,1);reTask(i);schedulePreview();}
+
+function addClue(i){
+  if(!G.puzzles[i].clues) G.puzzles[i].clues=[];
+  G.puzzles[i].clues.push({hint:'',answer:''});
+  reTask(i); schedulePreview();
+}
+function rmClue(i,ci){G.puzzles[i].clues.splice(ci,1);reTask(i);schedulePreview();}
+
+function addTask(){
+  G.puzzles.push({type:'truefalse',title:'Задание '+(G.puzzles.length+1),question:'Вопрос...',statements:[{text:'Утверждение',answer:'true'}]});
+  openTaskIdx=G.puzzles.length-1;
+  renderEditor(); schedulePreview();
+}
+function delTask(i){
+  if(!confirm('Удалить задание '+(i+1)+'?')) return;
+  G.puzzles.splice(i,1); openTaskIdx=null;
+  renderEditor(); schedulePreview();
+}
+function reTask(i){
+  const el=document.getElementById('tb-'+i);
+  if(el){el.innerHTML=rTB(G.puzzles[i],i);}
+}
+function openAt(i){
+  openTaskIdx=i; renderEditor();
+  setTimeout(()=>{const el=document.getElementById('tc-'+i);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+
+
 function rExport(){
   const lastUrl = (() => { try { return localStorage.getItem('lastShareUrl')||''; } catch(e) { return ''; } })();
   const lastIframe = lastUrl ? '<iframe src="'+lastUrl+'" width="100%" height="100%" frameborder="0" style="border:none;display:block" allowfullscreen></iframe>' : '';
