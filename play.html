@@ -342,18 +342,40 @@ document.addEventListener("DOMContentLoaded", async function() {
     ROWS = Math.ceil(TOTAL / COLS);
   }
 
-  // Apply CSS variables dynamically
+  // Apply CSS variables + theme style
+  const st2 = D.style || {};
+  const b = st2.border || {};
+  const borderColor = b.color || 'rgba(246,195,91,0.6)';
+  const borderWidth = b.width || 2;
+  const borderRadius = b.radius || 4;
+  const glowColor = b.glow || 'rgba(246,195,91,0.2)';
+  const glowSize = b.glowSize || 60;
+  const cardBg = st2.cardBg || 'linear-gradient(145deg,rgba(11,30,79,0.96),rgba(19,47,115,0.92))';
+
   const style = document.createElement('style');
   style.textContent = ':root{'
     +'--bg-dark:'+c.bgDark+';--bg-mid:'+c.bgMid
     +';--cyan:'+c.cyan+';--cyan-light:'+c.goldLight
     +';--gold:'+c.gold+';--gold-light:'+c.goldLight
     +';--sunset:'+c.sunset+';--pink:'+c.pink
-    +';--violet:'+c.violet+';--green:'+c.green+';}'
+    +';--violet:'+c.violet+';--green:'+c.green
+    +';--border-color:'+borderColor
+    +';--border-width:'+borderWidth+'px'
+    +';--border-radius:'+borderRadius+'px'
+    +';--glow-color:'+glowColor
+    +';--glow-size:'+glowSize+'px'
+    +';--card-bg:'+cardBg+';}'
+    // Background images
     +'.start-screen{background-image:url("'+g.bgUrl+'") !important}'
     +'.game-screen{background-image:url("'+g.bgUrl+'") !important}'
     +'.puzzle-image-wrapper{background-image:url("'+g.puzzleImgUrl+'") !important}'
-    +'.tiles-grid{grid-template-columns:repeat('+COLS+',1fr) !important;grid-template-rows:repeat('+ROWS+',1fr) !important}';
+    +'.tiles-grid{grid-template-columns:repeat('+COLS+',1fr) !important;grid-template-rows:repeat('+ROWS+',1fr) !important}'
+    // Apply theme to cards
+    +'.start-card{background:var(--card-bg) !important;border:var(--border-width) solid var(--border-color) !important;border-radius:var(--border-radius) !important;box-shadow:0 0 0 1px var(--glow-color),0 0 var(--glow-size) var(--glow-color),0 24px 80px rgba(0,0,0,0.6) !important;}'
+    +'.game-wrapper{border:var(--border-width) solid var(--border-color) !important;border-radius:var(--border-radius) !important;box-shadow:0 0 0 1px var(--glow-color),0 0 var(--glow-size) var(--glow-color),0 24px 80px rgba(0,0,0,0.6) !important;}'
+    +'.zoom-card,.overlay-card,.final-content,.picture-content{border:var(--border-width) solid var(--border-color) !important;border-radius:var(--border-radius) !important;}'
+    +'.top-bar{border-bottom:var(--border-width) solid var(--border-color) !important;}'
+    ;
   document.head.appendChild(style);
 
   // Set text content
