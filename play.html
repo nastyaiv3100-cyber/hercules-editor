@@ -347,23 +347,23 @@ document.addEventListener("DOMContentLoaded", async function() {
   function sa(id,attr,val){var el=document.getElementById(id);if(el)el.setAttribute(attr,val);}
   st('startBadge', s.badge); st('startIcon', s.icon); st('startTitle', s.title);
   st('startSubtitle', s.subtitle); st('startDesc', s.description);
-  document.getElementById('startButton').textContent = s.btnText;
+  st('startButton', s.btnText);
   st('startFooter', s.footer);
   st('tbIcon', g.topIcon); st('tbTitle', g.topTitle); st('tbSub', g.topSub);
   st('progressIcon', g.progressIcon);
-  document.getElementById('progressText').textContent = '0 / ' + TOTAL;
+  st('progressText', '0 / ' + TOTAL);
   st('errorIcon', o.errorIcon); st('errorTitle', o.errorTitle); st('errorText', o.errorText);
   st('pictureTitle', o.pictureTitle);
-  document.getElementById('pictureDoneBtn').textContent = o.pictureBtnText;
+  st('pictureDoneBtn', o.pictureBtnText);
   sa('pictureImg','src', g.revealImgUrl);
   st('finalEmblem', o.finalEmblem); st('finalTitle', o.finalTitle); st('finalText', o.finalText);
-  document.getElementById('playAgainButton').textContent = o.playAgainText;
-  document.title = s.title || 'Игра';
+  st('playAgainButton', o.playAgainText);
+  try { document.title = s.title || 'Игра'; } catch(e) {}
 
   // Expose for game JS (inline functions use these)
   window.__G__ = {puzzles:D.puzzles, COLS:COLS, ROWS:ROWS, TOTAL:TOTAL, c:c, g:g};
 
-// puzzles/TOTAL/COLS/ROWS already declared above
+const puzzles = D.puzzles;
 let soundEnabled=true,openedTiles=0,wrongAttempts=0,zoomActive=false,zoomIdx=null;
 let zFillInps=[],zMatchSels=[],zTFState=[],zOrderInps=[],zMCState=[],zWordInps=[];
 const startScreen=document.getElementById("startScreen"),gameScreen=document.getElementById("gameScreen"),startButton=document.getElementById("startButton"),tilesGrid=document.getElementById("tilesGrid"),progressTextEl=document.getElementById("progressText"),errorOverlay=document.getElementById("errorOverlay"),finalOverlay=document.getElementById("finalOverlay"),playAgainButton=document.getElementById("playAgainButton"),soundToggleBtn=document.getElementById("soundToggle"),soundIconEl=document.getElementById("soundIcon"),floatContainer=document.getElementById("floatContainer"),pictureOverlay=document.getElementById("pictureOverlay"),pictureDoneBtn=document.getElementById("pictureDoneBtn"),zoomOverlay=document.getElementById("zoomOverlay"),zoomTitleEl=document.getElementById("zoomTitle"),zoomQEl=document.getElementById("zoomQuestion"),zoomBodyEl=document.getElementById("zoomBody"),zoomCloseBtn=document.getElementById("zoomClose"),zoomSubmitBtn=document.getElementById("zoomSubmit");
