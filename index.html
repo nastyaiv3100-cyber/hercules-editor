@@ -830,104 +830,110 @@ function applyTheme(key) {
 }
 
 function rTheme() {
-  const s = G.style || {};
-  const b = s.border || {color:'rgba(246,195,91,0.6)',width:'2',radius:'4',glow:'rgba(246,195,91,0.2)',glowSize:'60'};
+  if (!G.style) G.style = {};
+  if (!G.style.border) G.style.border = {color:'rgba(246,195,91,0.6)',width:'2',radius:'4',glow:'rgba(246,195,91,0.2)',glowSize:'60'};
+  if (!G.colors) G.colors = {};
+  if (!G.textColors) G.textColors = {};
+  const s = G.style;
+  const b = s.border;
   const c = G.colors;
-  const tx = G.textColors || {title:'#F6C35B',subtitle:'#FFE9A8',body:'rgba(248,252,255,0.75)',btn:'#0B1E4F',badge:'#57D6FF'};
+  const tx = G.textColors;
   const lbl = {bgDark:'Фон тёмный',bgMid:'Фон средний',cyan:'Акцент (голубой)',gold:'Золотой',goldLight:'Золотой светлый',sunset:'Закат',pink:'Розовый',violet:'Фиолетовый',green:'Зелёный'};
+  const cardBg = s.cardBg || 'linear-gradient(145deg,#0B1E4F,#132F73)';
 
-  return `<div class="sec-title">🎨 Тема и стиль</div>
+  // ── Themes ──
+  let themeBtns = '';
+  Object.entries(THEMES).forEach(function(e2) {
+    var k = e2[0], t = e2[1];
+    var dots = ['bgDark','cyan','gold','green'].map(function(cc) {
+      return '<span style="width:9px;height:9px;border-radius:50%;background:' + t.colors[cc] + ';display:inline-block;flex-shrink:0"></span>';
+    }).join('');
+    themeBtns += '<button class="btn btn-ghost" onclick="applyTheme(\'' + k + '\')" style="justify-content:flex-start;padding:10px 12px;font-size:11px;text-align:left;border-color:#252836;gap:6px">'
+      + '<span style="font-size:14px">' + t.name.split(' ')[0] + '</span>'
+      + '<span style="flex:1">' + t.name.split(' ').slice(1).join(' ') + '</span>'
+      + '<span style="display:flex;gap:3px">' + dots + '</span>'
+      + '</button>';
+  });
 
-<div class="panel"><div class="phdr">🎭 Готовые темы</div><div class="pbody">
-<div class="note note-blue" style="margin-bottom:12px">Одним кликом применяет все цвета, рамку и фон.</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-${Object.entries(THEMES).map(([k,t])=>`
-  <button class="btn btn-ghost" onclick="applyTheme('${k}')" style="justify-content:flex-start;padding:10px 12px;font-size:11px;text-align:left;border-color:#252836;gap:6px">
-    <span style="font-size:14px">${t.name.split(' ')[0]}</span>
-    <span style="flex:1">${t.name.split(' ').slice(1).join(' ')}</span>
-    <span style="display:flex;gap:3px">${['bgDark','cyan','gold','green'].map(cc=>`<span style="width:9px;height:9px;border-radius:50%;background:${t.colors[cc]};flex-shrink:0"></span>`).join('')}</span>
-  </button>`).join('')}
-</div>
-</div></div>
+  // ── Card bg swatches ──
+  var swatches = [{c1:'#0B1E4F',c2:'#132F73'},{c1:'#060818',c2:'#0D1535'},{c1:'#001B33',c2:'#003D66'},{c1:'#0A1F0A',c2:'#1A3D1A'},{c1:'#1A0A0A',c2:'#3D1515'},{c1:'#0F0F0F',c2:'#1A1A1A'},{c1:'#110B2A',c2:'#1E1044'},{c1:'#1A1200',c2:'#332400'}];
+  var swatchHtml = '';
+  swatches.forEach(function(p) {
+    var grad = 'linear-gradient(145deg,' + p.c1 + ',' + p.c2 + ')';
+    var border = cardBg.includes(p.c1) ? 'border:2px solid #f6c35b' : 'border:1px solid #252836';
+    swatchHtml += '<div onclick="setBg(\'' + grad + '\')" style="cursor:pointer;height:36px;border-radius:6px;background:' + grad + ';' + border + '" onmouseenter="this.style.transform=\'scale(1.06)\'" onmouseleave="this.style.transform=\'\'"></div>';
+  });
 
-<div class="panel"><div class="phdr">🖼 Фон карточки</div><div class="pbody">
-<div style="font-size:10px;color:#555870;margin-bottom:10px">Готовые варианты:</div>
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
-${[
-  {c1:'#0B1E4F',c2:'#132F73'},{c1:'#060818',c2:'#0D1535'},
-  {c1:'#001B33',c2:'#003D66'},{c1:'#0A1F0A',c2:'#1A3D1A'},
-  {c1:'#1A0A0A',c2:'#3D1515'},{c1:'#0F0F0F',c2:'#1A1A1A'},
-  {c1:'#110B2A',c2:'#1E1044'},{c1:'#1A1200',c2:'#332400'},
-].map(p=>{
-  const grad='linear-gradient(145deg,'+p.c1+','+p.c2+')';
-  const active=(s.cardBg||'').includes(p.c1)?'border:2px solid #f6c35b;':'border:1px solid #252836;';
-  return '<div onclick="setBg(''+grad+'')" style="cursor:pointer;height:36px;border-radius:6px;background:'+grad+';'+active+'" onmouseenter="this.style.transform='scale(1.06)'" onmouseleave="this.style.transform=''"></div>';
-}).join('')}
-</div>
-<div style="font-size:10px;color:#555870;margin-bottom:7px">Свои цвета:</div>
-<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
-  <div><div style="font-size:9px;color:#454760;margin-bottom:3px">Цвет 1</div>
-    <input type="color" id="bgColor1" value="${rgbaOrHexToHex(s.cardBg||'#0B1E4F')}" oninput="updateCustomBg()" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>
-  </div>
-  <div><div style="font-size:9px;color:#454760;margin-bottom:3px">Цвет 2</div>
-    <input type="color" id="bgColor2" value="${rgbaOrHexToHex((s.cardBg||'').split(',').pop()||'#132F73')}" oninput="updateCustomBg()" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>
-  </div>
-  <div style="flex:1"><div style="font-size:9px;color:#454760;margin-bottom:3px">Прозрачность</div>
-    <input type="range" id="bgOpacity" min="70" max="100" value="96" oninput="updateCustomBg();this.nextSibling.textContent=this.value+'%'" style="width:100%"/><span style="font-size:10px;color:#f6c35b">96%</span>
-  </div>
-</div>
-<div id="cardBgPreview" style="height:44px;border-radius:6px;border:1px solid #252836;background:${esc(s.cardBg||'linear-gradient(145deg,#0B1E4F,#132F73)')};display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);font-size:10px">Предпросмотр карточки</div>
-</div></div>
+  // ── Interface colors ──
+  var colorPickers = '';
+  Object.entries(c).forEach(function(e2) {
+    var k = e2[0], v = e2[1];
+    var hexVal = (v && v.startsWith('#')) ? v : '#F6C35B';
+    colorPickers += '<div class="fr"><div class="fl">' + (lbl[k]||k) + '</div>'
+      + '<div style="display:flex;gap:7px;align-items:center">'
+      + '<input type="color" value="' + hexVal + '" oninput="G.colors[\'' + k + '\']=this.value;this.nextElementSibling.value=this.value;clearTimeout(pvTimer);loadPreview();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>'
+      + '<input type="text" class="gf" data-gk="colors.' + k + '" value="' + esc(v) + '" style="width:88px;font-family:monospace;font-size:10px"/>'
+      + '</div></div>';
+  });
 
-<div class="panel"><div class="phdr">🔲 Рамка</div><div class="pbody">
-<div class="fr"><div class="fl">Цвет рамки</div>
-  <div style="display:flex;gap:8px;align-items:center">
-    <input type="color" value="${rgbaToHex(b.color||'rgba(246,195,91,0.6)')}" oninput="if(!G.style)G.style={};if(!G.style.border)G.style.border={};G.style.border.color='rgba('+hexToRgb(this.value)+',0.6)';this.nextElementSibling.value=G.style.border.color;clearTimeout(pvTimer);loadPreview();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>
-    <input type="text" class="gf" data-gk="style.border.color" value="${esc(b.color||'rgba(246,195,91,0.6)')}" style="font-family:monospace;font-size:11px;flex:1"/>
-  </div>
-</div>
-<div class="fr"><div class="fl">Толщина</div>
-  <div style="display:flex;align-items:center;gap:8px">
-    <input type="range" min="0" max="6" step="1" value="${b.width||2}" oninput="if(!G.style.border)G.style.border={};G.style.border.width=this.value;this.nextElementSibling.textContent=this.value+'px';clearTimeout(pvTimer);loadPreview();" style="flex:1"/>
-    <span style="font-size:11px;color:#f6c35b;min-width:28px">${b.width||2}px</span>
-  </div>
-</div>
-<div class="fr"><div class="fl">Скругление</div>
-  <div style="display:flex;align-items:center;gap:8px">
-    <input type="range" min="0" max="24" step="1" value="${b.radius||4}" oninput="if(!G.style.border)G.style.border={};G.style.border.radius=this.value;this.nextElementSibling.textContent=this.value+'px';clearTimeout(pvTimer);loadPreview();" style="flex:1"/>
-    <span style="font-size:11px;color:#f6c35b;min-width:28px">${b.radius||4}px</span>
-  </div>
-</div>
-<div class="fr"><div class="fl">Свечение</div>
-  <div style="display:flex;align-items:center;gap:8px">
-    <input type="range" min="0" max="120" step="5" value="${b.glowSize||60}" oninput="if(!G.style.border)G.style.border={};G.style.border.glowSize=this.value;this.nextElementSibling.textContent=this.value+'px';clearTimeout(pvTimer);loadPreview();" style="flex:1"/>
-    <span style="font-size:11px;color:#f6c35b;min-width:28px">${b.glowSize||60}px</span>
-  </div>
-</div>
-</div></div>
+  // ── Text colors ──
+  var textColorDefs = [
+    {key:'title',   label:'Заголовок',     def:'#F6C35B'},
+    {key:'subtitle',label:'Подзаголовок',  def:'#FFE9A8'},
+    {key:'body',    label:'Основной текст', def:'rgba(248,252,255,0.75)'},
+    {key:'btn',     label:'Текст кнопки',  def:'#0B1E4F'},
+    {key:'badge',   label:'Бейдж / акцент',def:'#57D6FF'},
+  ];
+  var textPickers = '';
+  textColorDefs.forEach(function(t2) {
+    var val = tx[t2.key] || t2.def;
+    var hexVal = rgbaToHex(val);
+    textPickers += '<div class="fr"><div class="fl">' + t2.label + '</div>'
+      + '<div style="display:flex;gap:7px;align-items:center">'
+      + '<input type="color" value="' + hexVal + '" oninput="if(!G.textColors)G.textColors={};G.textColors[\'' + t2.key + '\']=this.value;this.nextElementSibling.value=this.value;clearTimeout(pvTimer);loadPreview();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>'
+      + '<input type="text" class="gf" data-gk="textColors.' + t2.key + '" value="' + esc(val) + '" style="width:88px;font-family:monospace;font-size:10px"/>'
+      + '<span style="font-size:11px;background:#0a0c14;padding:2px 8px;border-radius:3px;color:' + val + '">Аа</span>'
+      + '</div></div>';
+  });
 
-<div class="panel"><div class="phdr">🎨 Цвета интерфейса</div><div class="pbody">
-${Object.entries(c).map(([k,v])=>`<div class="fr"><div class="fl">${lbl[k]||k}</div>
-<div style="display:flex;gap:7px;align-items:center">
-  <input type="color" value="${v.startsWith('#')?v:'#F6C35B'}" oninput="G.colors['${k}']=this.value;this.nextElementSibling.value=this.value;clearTimeout(pvTimer);loadPreview();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>
-  <input type="text" class="gf" data-gk="colors.${k}" value="${esc(v)}" style="width:88px;font-family:monospace;font-size:10px"/>
-</div></div>`).join('')}
-</div></div>
+  return '<div class="sec-title">🎨 Тема и стиль</div>'
 
-<div class="panel"><div class="phdr">✏️ Цвета текста</div><div class="pbody">
-${[
-  {key:'title',   label:'Заголовок',    def:'#F6C35B'},
-  {key:'subtitle',label:'Подзаголовок', def:'#FFE9A8'},
-  {key:'body',    label:'Основной текст',def:'rgba(248,252,255,0.75)'},
-  {key:'btn',     label:'Текст кнопки', def:'#0B1E4F'},
-  {key:'badge',   label:'Бейдж / акцент',def:'#57D6FF'},
-].map(t=>`<div class="fr"><div class="fl">${t.label}</div>
-<div style="display:flex;gap:7px;align-items:center">
-  <input type="color" value="${rgbaToHex(tx[t.key]||t.def)}" oninput="if(!G.textColors)G.textColors={};G.textColors['${t.key}']=this.value;this.nextElementSibling.value=this.value;clearTimeout(pvTimer);loadPreview();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>
-  <input type="text" class="gf" data-gk="textColors.${t.key}" value="${esc(tx[t.key]||t.def)}" style="width:88px;font-family:monospace;font-size:10px"/>
-  <span style="font-size:11px;color:${tx[t.key]||t.def};background:#0a0c14;padding:2px 8px;border-radius:3px">Аа</span>
-</div></div>`).join('')}
-</div></div>`;
+    + '<div class="panel"><div class="phdr">🎭 Готовые темы</div><div class="pbody">'
+    + '<div class="note note-blue" style="margin-bottom:12px">Одним кликом применяет все цвета, рамку и фон.</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' + themeBtns + '</div>'
+    + '</div></div>'
+
+    + '<div class="panel"><div class="phdr">🖼 Фон карточки</div><div class="pbody">'
+    + '<div style="font-size:10px;color:#555870;margin-bottom:10px">Готовые варианты:</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">' + swatchHtml + '</div>'
+    + '<div style="font-size:10px;color:#555870;margin-bottom:7px">Свои цвета:</div>'
+    + '<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">'
+    + '<div><div style="font-size:9px;color:#454760;margin-bottom:3px">Цвет 1</div><input type="color" id="bgColor1" value="' + rgbaOrHexToHex(cardBg) + '" oninput="updateCustomBg()" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/></div>'
+    + '<div><div style="font-size:9px;color:#454760;margin-bottom:3px">Цвет 2</div><input type="color" id="bgColor2" value="' + rgbaOrHexToHex(cardBg.split(',').pop()) + '" oninput="updateCustomBg()" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/></div>'
+    + '<div style="flex:1"><div style="font-size:9px;color:#454760;margin-bottom:3px">Прозрачность</div><input type="range" id="bgOpacity" min="70" max="100" value="96" oninput="updateCustomBg();this.nextSibling.textContent=this.value+\'%\'" style="width:100%"/><span style="font-size:10px;color:#f6c35b">96%</span></div>'
+    + '</div>'
+    + '<div id="cardBgPreview" style="height:44px;border-radius:6px;border:1px solid #252836;background:' + esc(cardBg) + ';display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);font-size:10px">Предпросмотр карточки</div>'
+    + '</div></div>'
+
+    + '<div class="panel"><div class="phdr">🔲 Рамка</div><div class="pbody">'
+    + '<div class="fr"><div class="fl">Цвет рамки</div><div style="display:flex;gap:8px;align-items:center">'
+    + '<input type="color" value="' + rgbaToHex(b.color||'rgba(246,195,91,0.6)') + '" oninput="if(!G.style)G.style={};if(!G.style.border)G.style.border={};G.style.border.color=\'rgba(\'+hexToRgb(this.value)+\',0.6)\';this.nextElementSibling.value=G.style.border.color;clearTimeout(pvTimer);loadPreview();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>'
+    + '<input type="text" class="gf" data-gk="style.border.color" value="' + esc(b.color||'rgba(246,195,91,0.6)') + '" style="font-family:monospace;font-size:11px;flex:1"/>'
+    + '</div></div>'
+    + '<div class="fr"><div class="fl">Толщина</div><div style="display:flex;align-items:center;gap:8px">'
+    + '<input type="range" min="0" max="6" step="1" value="' + (b.width||2) + '" oninput="if(!G.style.border)G.style.border={};G.style.border.width=this.value;this.nextElementSibling.textContent=this.value+\'px\';clearTimeout(pvTimer);loadPreview();" style="flex:1"/>'
+    + '<span style="font-size:11px;color:#f6c35b;min-width:28px">' + (b.width||2) + 'px</span></div></div>'
+    + '<div class="fr"><div class="fl">Скругление</div><div style="display:flex;align-items:center;gap:8px">'
+    + '<input type="range" min="0" max="24" step="1" value="' + (b.radius||4) + '" oninput="if(!G.style.border)G.style.border={};G.style.border.radius=this.value;this.nextElementSibling.textContent=this.value+\'px\';clearTimeout(pvTimer);loadPreview();" style="flex:1"/>'
+    + '<span style="font-size:11px;color:#f6c35b;min-width:28px">' + (b.radius||4) + 'px</span></div></div>'
+    + '<div class="fr"><div class="fl">Свечение</div><div style="display:flex;align-items:center;gap:8px">'
+    + '<input type="range" min="0" max="120" step="5" value="' + (b.glowSize||60) + '" oninput="if(!G.style.border)G.style.border={};G.style.border.glowSize=this.value;this.nextElementSibling.textContent=this.value+\'px\';clearTimeout(pvTimer);loadPreview();" style="flex:1"/>'
+    + '<span style="font-size:11px;color:#f6c35b;min-width:28px">' + (b.glowSize||60) + 'px</span></div></div>'
+    + '</div></div>'
+
+    + '<div class="panel"><div class="phdr">🎨 Цвета интерфейса</div><div class="pbody">' + colorPickers + '</div></div>'
+
+    + '<div class="panel"><div class="phdr">✏️ Цвета текста</div><div class="pbody">' + textPickers + '</div></div>';
 }
 
 function hexToRgb(hex) {
