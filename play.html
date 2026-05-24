@@ -7,8 +7,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
   <!-- KaTeX for math rendering -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="window.__katexReady=true;if(window.__katexPending)window.__katexPending()"></script>
   <!-- Google Fonts for multilingual support -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic&family=Noto+Sans+SC&family=Noto+Sans+JP&family=Noto+Sans+KR&display=swap" rel="stylesheet"/>
   <style>
@@ -448,21 +449,28 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
   }
 
-  // Render KaTeX math after a short delay (wait for KaTeX to load)
+  // Render KaTeX math - wait for auto-render.min.js to load
   if (D.lang && D.lang.math) {
-    setTimeout(() => {
-      if (typeof renderMathInElement !== 'undefined') {
-        renderMathInElement(document.body, {
-          delimiters: [
-            {left:'$$', right:'$$', display:true},
-            {left:'$', right:'$', display:false},
-            {left:'\\(', right:'\\)', display:false},
-            {left:'\\[', right:'\\]', display:true}
-          ],
-          throwOnError: false
-        });
-      }
-    }, 500);
+    function doRenderMath() {
+      if (typeof renderMathInElement === 'undefined') return;
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left:'$$', right:'$$', display:true},
+          {left:'$', right:'$', display:false},
+          {left:'\\(', right:'\\)', display:false},
+          {left:'\\[', right:'\\]', display:true}
+        ],
+        throwOnError: false
+      });
+    }
+    if (window.__katexReady) {
+      doRenderMath();
+    } else {
+      // KaTeX not yet loaded - set callback
+      window.__katexPending = doRenderMath;
+      // Fallback timeout
+      setTimeout(doRenderMath, 2000);
+    }
   }
 
   // Expose for game JS (inline functions use these)
