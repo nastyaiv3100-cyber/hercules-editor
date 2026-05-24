@@ -5,6 +5,12 @@
   <title>Игра</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+  <!-- KaTeX for math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <!-- Google Fonts for multilingual support -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic&family=Noto+Sans+SC&family=Noto+Sans+JP&family=Noto+Sans+KR&display=swap" rel="stylesheet"/>
   <style>
     :root{--bg-dark:#0B1E4F;--bg-mid:#132F73;--cyan:#57D6FF;--cyan-light:#FFE9A8;--gold:#F6C35B;--gold-light:#FFE9A8;--sunset:#FF9B6A;--pink:#F28DB2;--violet:#8A6BFF;--green:#7EDB8A;--white:#F8FCFF;--font-title:'Cinzel Decorative',serif;--font-hdr:'Cinzel',serif;--font-body:'Lora',serif;}
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -404,8 +410,45 @@ document.addEventListener("DOMContentLoaded", async function() {
   st('playAgainButton', o.playAgainText);
   try { document.title = s.title || 'Игра'; } catch(e) {}
 
+  // Apply custom font
+  if (D.lang && D.lang.font && D.lang.font !== 'default') {
+    const fontMap = {
+      cyrillic: "'Lora',serif",
+      latin: "'Cinzel',serif",
+      arabic: "'Noto Sans Arabic',sans-serif",
+      chinese: "'Noto Sans SC',sans-serif",
+      japanese: "'Noto Sans JP',sans-serif",
+      korean: "'Noto Sans KR',sans-serif",
+      mono: "'Courier New',monospace"
+    };
+    const fontCss = fontMap[D.lang.font];
+    if (fontCss) {
+      const fontStyle = document.createElement('style');
+      fontStyle.textContent = '.tile-question,.zoom-question,.tf-text,.mc-opt,.fill-row,.word-hint,.order-item{font-family:'+fontCss+' !important}';
+      document.head.appendChild(fontStyle);
+    }
+  }
+
+  // Render KaTeX math after a short delay (wait for KaTeX to load)
+  if (D.lang && D.lang.math) {
+    setTimeout(() => {
+      if (typeof renderMathInElement !== 'undefined') {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left:'$$', right:'$$', display:true},
+            {left:'$', right:'$', display:false},
+            {left:'\\(', right:'\\)', display:false},
+            {left:'\\[', right:'\\]', display:true}
+          ],
+          throwOnError: false
+        });
+      }
+    }, 500);
+  }
+
   // Expose for game JS (inline functions use these)
   window.__G__ = {puzzles:D.puzzles, COLS:COLS, ROWS:ROWS, TOTAL:TOTAL, c:c, g:g};
+  window.__gameData__ = D; // store full data for font/math access
 
 const puzzles = D.puzzles;
 let soundEnabled=true,openedTiles=0,wrongAttempts=0,zoomActive=false,zoomIdx=null;
