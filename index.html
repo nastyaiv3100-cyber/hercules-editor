@@ -574,13 +574,15 @@ function rImages(){
 
 
   function imgField(label, key, url) {
-    const preview = url && !url.startsWith('data:')
-      ? '<img src="' + esc(url) + '" style="width:100%;max-height:80px;object-fit:cover;border-radius:5px;margin-top:6px;border:1px solid #252836" onerror="this.style.display=\'none\'"/>'
-      : '';
+    const safeUrl = (url && !url.startsWith('data:')) ? url : '';
+    const imgId = 'prev_' + key.replace(/\./g,'_');
+    const prevStyle = 'width:100%;max-height:80px;object-fit:cover;border-radius:5px;margin-top:6px;border:1px solid #252836;display:' + (safeUrl ? 'block' : 'none');
     return '<div style="margin-bottom:16px">'
       + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:6px">' + label + '</div>'
-      + '<input type="text" class="gf" data-gk="' + key + '" value="' + esc(url.startsWith('data:') ? '' : url) + '" placeholder="https://postimg.cc/..." style="width:100%"/>'
-      + preview
+      + '<input type="text" class="gf" data-gk="' + key + '" value="' + esc(safeUrl) + '" placeholder="https://postimg.cc/..." style="width:100%"'
+      + ' oninput="var p=document.getElementById(\'' + imgId + '\');if(p){p.src=this.value;p.style.display=this.value?\'block\':\'none\';}"'
+      + '/>'
+      + '<img id="' + imgId + '" src="' + esc(safeUrl) + '" style="' + prevStyle + '" onerror="this.style.display=\'none\'"/>'
       + '</div>';
   }
 
