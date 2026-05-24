@@ -838,7 +838,17 @@ function rTheme() {
   const b = s.border;
   const c = G.colors;
   const tx = G.textColors;
-  const lbl = {bgDark:'Фон тёмный',bgMid:'Фон средний',cyan:'Акцент (голубой)',gold:'Золотой',goldLight:'Золотой светлый',sunset:'Закат',pink:'Розовый',violet:'Фиолетовый',green:'Зелёный'};
+  const lbl = {
+    bgDark:    'Фон основной — игровое поле, тайлы',
+    bgMid:     'Фон вторичный — шапка, тайлы (чётные)',
+    cyan:      'Акцент голубой — подзаголовки, иконки',
+    gold:      'Золотой — заголовки, кнопки, рамки',
+    goldLight: 'Золотой светлый — подсветка, текст бейджа',
+    sunset:    'Закат — частицы, декор',
+    pink:      'Розовый — кнопка «Неверно», декор',
+    violet:    'Фиолетовый — эффекты, декор',
+    green:     'Зелёный — кнопка «Верно», прогресс',
+  };
   const cardBg = s.cardBg || 'linear-gradient(145deg,#0B1E4F,#132F73)';
 
   // ── Themes ──
@@ -931,7 +941,9 @@ function rTheme() {
     + '<span style="font-size:11px;color:#f6c35b;min-width:28px">' + (b.glowSize||60) + 'px</span></div></div>'
     + '</div></div>'
 
-    + '<div class="panel"><div class="phdr">🎨 Цвета интерфейса</div><div class="pbody">' + colorPickers + '</div></div>'
+    + '<div class="panel"><div class="phdr">🎨 Цвета интерфейса</div><div class="pbody">'
+    + '<div class="note note-blue" style="margin-bottom:10px;font-size:10px">Каждый цвет подписан — видно <b style="color:#c8cbdf">где именно</b> он используется в игре.</div>'
+    + colorPickers + '</div></div>'
 
     + '<div class="panel"><div class="phdr">✏️ Цвета текста</div><div class="pbody">' + textPickers + '</div></div>';
 }
