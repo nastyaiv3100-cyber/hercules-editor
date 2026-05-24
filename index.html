@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8"/>
-<title>🏛️ Hercules Editor — Live</title>
+<title>🎬 Тайная картинка — Редактор</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0c12;color:#e8eaf0;height:100vh;overflow:hidden;font-size:13px}
@@ -152,7 +152,7 @@ select{cursor:pointer}select option{background:#111420}
 
   <!-- TOPBAR -->
   <div class="topbar">
-    <div class="logo">🏛️ Hercules <em>Editor</em></div>
+    <div class="logo">🎬 Тайная <em>картинка</em></div>
     <div class="top-badge" id="tcBadge">6 заданий</div>
     <div class="top-right">
       <span class="pv-status"><span class="pv-dot" id="liveDot"></span><span style="font-size:10px;color:#5a6a5a">live</span></span>
@@ -177,7 +177,7 @@ select{cursor:pointer}select option{background:#111420}
     <div id="taskNav"></div>
     <div style="margin-top:auto;padding:14px 8px 8px;border-top:1px solid #1a1d28;margin-top:20px">
       <div style="font-size:9px;color:#252836;letter-spacing:.8px;line-height:1.8;text-align:center">
-        🏛️ Hercules Editor<br>
+        🎬 Тайная картинка<br>
         <span style="color:#1e2030">© Все права защищены</span><br>
         <span id="authorTag" style="color:#252836">by author</span>
       </div>
@@ -228,11 +228,11 @@ select{cursor:pointer}select option{background:#111420}
 <!-- COPYRIGHT WATERMARK (always visible) -->
 <div class="copyright-bar">
   <span>🏛️</span>
-  <span>Hercules Editor</span>
+  <span>Тайная картинка</span>
   <span style="color:#252836">•</span>
   <span>Создано для учителей</span>
   <span style="color:#252836">•</span>
-  <a href="https://github.com" target="_blank" id="authorLink">© Автор</a>
+  <a href="https://www.youtube.com/@UroknaPlay" target="_blank" id="authorLink">© Урок на Play</a>
   <span style="color:#252836">•</span>
   <span>Все права защищены</span>
 </div>
@@ -1086,6 +1086,9 @@ function rLangs() {
       + 'Примеры: <code style="color:#7edb8a;background:#06080e;padding:1px 5px;border-radius:3px">$2^{10}$</code> → 2¹⁰ &nbsp;|&nbsp;'
       + '<code style="color:#7edb8a;background:#06080e;padding:1px 5px;border-radius:3px">$\\sqrt{x}$</code> → √x &nbsp;|&nbsp;'
       + '<code style="color:#7edb8a;background:#06080e;padding:1px 5px;border-radius:3px">$\\frac{1}{2}$</code> → ½'
+      + '</div>'
+      + '<div class="note" style="background:#f6c35b0d;border:1px solid #f6c35b30;border-left:3px solid #f6c35b;border-radius:5px;padding:7px 10px;font-size:10px;color:#c8a050;margin-top:8px">'
+      + '⚠️ Формулы рендерятся только в игре (в Genially). В редакторе они отображаются как текст — это нормально.'
       + '</div>'
     : '';
 
