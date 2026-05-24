@@ -5,11 +5,100 @@
   <title>Игра</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
-  <!-- KaTeX for math rendering -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-    onload="window.__katexReady=true;if(window.__katexPending)window.__katexPending()"></script>
+  <!-- Math rendering - try KaTeX CDN first, fallback to inline renderer -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" onerror="this.remove()"/>
+  <script>
+  // Inline micro math renderer - works without CDN
+  (function(){
+    function renderMath(el) {
+      if (!el) return;
+      var html = el.innerHTML;
+      // Block math $$...$$
+      html = html.replace(/\$\$([^$]+)\$\$/g, function(m, expr) {
+        return '<span class="math-block" style="display:block;text-align:center;margin:8px 0;font-size:1.15em">' + formatMath(expr) + '</span>';
+      });
+      // Inline math $...$
+      html = html.replace(/\$([^$
+]+)\$/g, function(m, expr) {
+        return '<span class="math-inline">' + formatMath(expr) + '</span>';
+      });
+      el.innerHTML = html;
+    }
+    function formatMath(s) {
+      s = s.trim();
+      // Protect existing HTML
+      s = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      // rac{a}{b}
+      s = s.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g,'<sup>$1</sup>⁄<sub>$2</sub>');
+      s = s.replace(/\frac\{([^}]+)\}\{([^}]+)\}/g,'<sup>$1</sup>⁄<sub>$2</sub>');
+      // \sqrt{x}
+      s = s.replace(/\\sqrt\{([^}]+)\}/g,'√<span style="text-decoration:overline">$1</span>');
+      s = s.replace(/\sqrt\{([^}]+)\}/g,'√<span style="text-decoration:overline">$1</span>');
+      // superscript x^{...} or x^y
+      s = s.replace(/\^{([^}]+)}/g,'<sup>$1</sup>');
+      s = s.replace(/\^([a-zA-Z0-9])/g,'<sup>$1</sup>');
+      // subscript x_{...} or x_y
+      s = s.replace(/_{([^}]+)}/g,'<sub>$1</sub>');
+      s = s.replace(/_([a-zA-Z0-9])/g,'<sub>$1</sub>');
+      // Common symbols
+      var symPairs = [
+        ['\\\\pi','π'],['\\pi','π'],
+        ['\\\\alpha','α'],['\\alpha','α'],
+        ['\\\\beta','β'],['\\beta','β'],
+        ['\\\\gamma','γ'],['\\gamma','γ'],
+        ['\\\\delta','δ'],['\\delta','δ'],
+        ['\\\\theta','θ'],['\\theta','θ'],
+        ['\\\\infty','∞'],['\\infty','∞'],
+        ['\\\\to','→'],['\\to','→'],
+        ['\\\\neq','≠'],['\\neq','≠'],
+        ['\\\\leq','≤'],['\\leq','≤'],
+        ['\\\\geq','≥'],['\\geq','≥'],
+        ['\\\\pm','±'],['\\pm','±'],
+        ['\\\\times','×'],['\\times','×'],
+        ['\\\\div','÷'],['\\div','÷'],
+        ['\\\\cdot','·'],['\\cdot','·'],
+        ['\\\\approx','≈'],['\\approx','≈'],
+        ['\\\\circ','°'],['\\circ','°'],
+        ['\\\\angle','∠'],['\\angle','∠'],
+        ['\\\\sin','sin'],['\\sin','sin'],
+        ['\\\\cos','cos'],['\\cos','cos'],
+        ['\\\\tan','tan'],['\\tan','tan'],
+        ['\\\\cot','cot'],['\\cot','cot'],
+        ['\\\\ln','ln'],['\\ln','ln'],
+        ['\\\\log','log'],['\\log','log'],
+        ['\\\\lim','lim'],['\\lim','lim'],
+        ['\\\\sum','Σ'],['\\sum','Σ'],
+        ['\\\\prod','Π'],['\\prod','Π'],
+        ['\\\\int','∫'],['\\int','∫'],
+        ['\\\\vec{',''],['\\vec{',''],
+        ['\\\\left(','('],['\\left(','('],
+        ['\\\\right)',')'],['\\right)',')'],
+        ['\\\\left[','['],['\\left[','['],
+        ['\\\\right]',']'],['\\right]',']'],
+        ['{',''],['}'  ,'']
+      ];
+      var syms = {};
+      symPairs.forEach(function(p){ syms[p[0]] = p[1]; });
+      Object.keys(syms).forEach(function(k){ s=s.split(k).join(syms[k]); });
+      return '<span style="font-family:Georgia,serif;font-style:italic">'+s+'</span>';
+    }
+    window.__renderMath = renderMath;
+    window.__katexReady = true;
+    // Try to load real KaTeX in background for better rendering
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';
+    s.onload = function() {
+      var ar = document.createElement('script');
+      ar.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js';
+      ar.onload = function() {
+        window.__useRealKatex = true;
+        if (window.__katexPending) window.__katexPending();
+      };
+      document.head.appendChild(ar);
+    };
+    document.head.appendChild(s);
+  })();
+  </script>
   <!-- Google Fonts for multilingual support -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic&family=Noto+Sans+SC&family=Noto+Sans+JP&family=Noto+Sans+KR&display=swap" rel="stylesheet"/>
   <style>
@@ -452,25 +541,24 @@ document.addEventListener("DOMContentLoaded", async function() {
   // Render KaTeX math - wait for auto-render.min.js to load
   if (D.lang && D.lang.math) {
     function doRenderMath() {
-      if (typeof renderMathInElement === 'undefined') return;
-      renderMathInElement(document.body, {
-        delimiters: [
-          {left:'$$', right:'$$', display:true},
-          {left:'$', right:'$', display:false},
-          {left:'\\(', right:'\\)', display:false},
-          {left:'\\[', right:'\\]', display:true}
-        ],
-        throwOnError: false
-      });
+      if (window.__useRealKatex && typeof renderMathInElement !== 'undefined') {
+        // Use full KaTeX if loaded
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left:'$$', right:'$$', display:true},
+            {left:'$', right:'$', display:false}
+          ],
+          throwOnError: false
+        });
+      } else if (window.__renderMath) {
+        // Use inline micro-renderer
+        window.__renderMath(document.body);
+      }
     }
-    if (window.__katexReady) {
-      doRenderMath();
-    } else {
-      // KaTeX not yet loaded - set callback
-      window.__katexPending = doRenderMath;
-      // Fallback timeout
-      setTimeout(doRenderMath, 2000);
-    }
+    // Always ready - inline renderer is synchronous
+    setTimeout(doRenderMath, 100);
+    // Also re-render when real KaTeX loads
+    window.__katexPending = doRenderMath;
   }
 
   // Expose for game JS (inline functions use these)
