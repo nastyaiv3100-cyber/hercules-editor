@@ -335,7 +335,11 @@ function loadPreview() {
       if (overlay) overlay.classList.add('hidden');
       if (dot) { dot.style.background = '#7edb8a'; dot.style.animation = ''; }
     };
-    frame.srcdoc = html;
+    // Use Blob URL — no 2MB srcdoc limit, works with large base64 images
+    if (frame._blobUrl) { URL.revokeObjectURL(frame._blobUrl); frame._blobUrl = null; }
+    const blob = new Blob([html], {type: 'text/html'});
+    frame._blobUrl = URL.createObjectURL(blob);
+    frame.src = frame._blobUrl;
   } catch(e) {
     if (overlay) overlay.classList.add('hidden');
     console.error('Preview error:', e);
@@ -386,7 +390,11 @@ function openFullscreen() {
   const fr = document.getElementById('fsFrame');
   ov.classList.add('open');
   try {
-    fr.srcdoc = buildSrcdoc();
+    const html = buildSrcdoc();
+    if (fr._blobUrl) { URL.revokeObjectURL(fr._blobUrl); fr._blobUrl = null; }
+    const blob = new Blob([html], {type: 'text/html'});
+    fr._blobUrl = URL.createObjectURL(blob);
+    fr.src = fr._blobUrl;
   } catch(e) { console.error('Fullscreen error:', e); }
 }
 function closeFullscreen() {
