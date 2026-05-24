@@ -377,9 +377,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     +';--glow-size:'+glowSize+'px'
     +';--card-bg:'+cardBg+';}'
     // Background images
-    +'.start-screen{background-image:url("'+g.bgUrl+'") !important}'
-    +'.game-screen{background-image:url("'+g.bgUrl+'") !important}'
-    +'.puzzle-image-wrapper{background-image:url("'+g.puzzleImgUrl+'") !important}'
+    // backgrounds applied via JS below to support large base64 data URLs
     +'.tiles-grid{grid-template-columns:repeat('+COLS+',1fr) !important;grid-template-rows:repeat('+ROWS+',1fr) !important}'
     // Apply theme to cards
     +'.start-card{background:var(--card-bg) !important;border:var(--border-width) solid var(--border-color) !important;border-radius:var(--border-radius) !important;box-shadow:0 0 0 1px var(--glow-color),0 0 var(--glow-size) var(--glow-color),0 24px 80px rgba(0,0,0,0.6) !important;}'
@@ -415,6 +413,21 @@ document.addEventListener("DOMContentLoaded", async function() {
   st('finalEmblem', o.finalEmblem); st('finalTitle', o.finalTitle); st('finalText', o.finalText);
   st('playAgainButton', o.playAgainText);
   try { document.title = s.title || 'Игра'; } catch(e) {}
+
+  // Apply background images directly via JS (supports large base64 data URLs)
+  // CSS url() in injected <style> gets truncated for long strings
+  function applyBg(selector, url) {
+    if (!url) return;
+    document.querySelectorAll(selector).forEach(function(el) {
+      el.style.backgroundImage = 'url("' + url + '")';
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+      el.style.backgroundRepeat = 'no-repeat';
+    });
+  }
+  applyBg('#startScreen', s.bgUrl);
+  applyBg('#gameScreen', g.bgUrl);
+  applyBg('.puzzle-image-wrapper', g.puzzleImgUrl);
 
   // Apply custom font
   if (D.lang && D.lang.font && D.lang.font !== 'default') {
