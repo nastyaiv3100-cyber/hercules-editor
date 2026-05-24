@@ -18,8 +18,7 @@
         return '<span class="math-block" style="display:block;text-align:center;margin:8px 0;font-size:1.15em">' + formatMath(expr) + '</span>';
       });
       // Inline math $...$
-      html = html.replace(/\$([^$
-]+)\$/g, function(m, expr) {
+      html = html.replace(/\$([^$\n]+)\$/g, function(m, expr) {
         return '<span class="math-inline">' + formatMath(expr) + '</span>';
       });
       el.innerHTML = html;
@@ -556,7 +555,9 @@ document.addEventListener("DOMContentLoaded", async function() {
       }
     }
     // Always ready - inline renderer is synchronous
-    setTimeout(doRenderMath, 100);
+    setTimeout(doRenderMath, 200);
+    // Also re-render after tiles are built
+    setTimeout(doRenderMath, 1000);
     // Also re-render when real KaTeX loads
     window.__katexPending = doRenderMath;
   }
@@ -586,7 +587,19 @@ else if(p.type==="truefalse"){const list=document.createElement("div");list.clas
 else if(p.type==="order"){const list=document.createElement("div");list.className="order-list";(p.items||[]).forEach(it=>{const row=document.createElement("div");row.className="order-row";const inp=document.createElement("input");inp.type="text";inp.className="inp-base order-num-inp";inp.placeholder="#";inp.maxLength=2;inp.setAttribute("inputmode","numeric");inp.addEventListener("keydown",e=>{if(e.key==="Enter")zoomSubmitBtn.click();});const txt=document.createElement("div");txt.className="order-item";txt.textContent=it.text;zOrderInps.push({inp,answer:it.answer});row.append(inp,txt);list.appendChild(row);});zoomBodyEl.appendChild(list);setTimeout(()=>zOrderInps[0]&&zOrderInps[0].inp.focus(),60);}
 else if(p.type==="multichoice"){(p.questions||[]).forEach((q)=>{const state={selected:null,answer:q.answer};zMCState.push(state);const qTitle=document.createElement("div");qTitle.style.cssText="font-family:'Lora',serif;font-size:13px;color:rgba(248,252,255,0.88);margin-bottom:8px;font-style:italic;";qTitle.textContent=(zMCState.length)+". "+q.q;const mcList=document.createElement("div");mcList.className="mc-list";mcList.style.marginBottom="16px";(q.options||[]).forEach((opt,oi)=>{const item=document.createElement("div");item.className="mc-opt";const ltr=document.createElement("span");ltr.className="mc-letter";ltr.textContent=["А","Б","В","Г"][oi]||(oi+1);const txt=document.createElement("span");txt.textContent=opt;item.append(ltr,txt);item.addEventListener("click",()=>{state.selected=oi;mcList.querySelectorAll(".mc-opt").forEach(el=>el.classList.remove("selected"));item.classList.add("selected");});mcList.appendChild(item);});zoomBodyEl.append(qTitle,mcList);});}
 else if(p.type==="wordguess"){const grid=document.createElement("div");grid.className="word-grid";(p.clues||[]).forEach((cl,ci)=>{const row=document.createElement("div");row.className="word-row";const num=document.createElement("div");num.className="word-num";num.textContent=(ci+1)+".";const hint=document.createElement("div");hint.className="word-hint";hint.textContent=cl.hint;const inp=document.createElement("input");inp.type="text";inp.className="inp-base word-inp";inp.placeholder="ответ...";inp.autocomplete="off";inp.addEventListener("keydown",e=>{if(e.key==="Enter")zoomSubmitBtn.click();});zWordInps.push({inp,answer:cl.answer});row.append(num,hint,inp);grid.appendChild(row);});zoomBodyEl.appendChild(grid);setTimeout(()=>zWordInps[0]&&zWordInps[0].inp.focus(),60);}
-buildDraftCanvas(zoomBodyEl);zoomOverlay.classList.add("active");}
+buildDraftCanvas(zoomBodyEl);zoomOverlay.classList.add("active");
+  // Render math in zoom overlay
+  if (window.__gameData__ && window.__gameData__.lang && window.__gameData__.lang.math) {
+    setTimeout(function() {
+      var zo = document.getElementById('zoomOverlay');
+      if (window.__useRealKatex && typeof renderMathInElement !== 'undefined') {
+        renderMathInElement(zo, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+      } else if (window.__renderMath) {
+        window.__renderMath(zo);
+      }
+    }, 80);
+  }
+}
 zoomSubmitBtn.addEventListener("click",()=>{const p=puzzles[zoomIdx];let ok=false;
 if(p.type==="fill"){ok=zFillInps.every(({inp,answer})=>inp.value.trim().toLowerCase()===String(answer).toLowerCase());if(ok)zFillInps.forEach(({inp})=>inp.classList.add("correct"));else zFillInps.forEach(({inp,answer})=>{inp.classList.remove("correct");if(inp.value.trim().toLowerCase()!==String(answer).toLowerCase())inp.classList.add("wrong");});}
 else if(p.type==="match"){ok=zMatchSels.every(({sel,answer})=>sel.value===answer);if(ok)zMatchSels.forEach(({sel})=>sel.classList.add("correct"));}
