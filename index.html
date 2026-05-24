@@ -758,14 +758,16 @@ if (!G.style) G.style = {
   border: {color:'rgba(246,195,91,0.6)', width:'2', radius:'4', glow:'rgba(246,195,91,0.2)', glowSize:'60'},
   cardBg: 'linear-gradient(145deg,rgba(11,30,79,0.96),rgba(19,47,115,0.92))'
 };
+if (!G.style.border) G.style.border = {color:'rgba(246,195,91,0.6)', width:'2', radius:'4', glow:'rgba(246,195,91,0.2)', glowSize:'60'};
 
 function applyTheme(key) {
   const t = THEMES[key];
   if (!t) return;
   Object.assign(G.colors, t.colors);
   G.style = {border: {...t.border}, cardBg: t.cardBg};
-  renderEditor();
-  schedulePreview();
+  renderEditor();          // re-render editor UI with new values
+  clearTimeout(pvTimer);   // cancel any pending preview
+  loadPreview();           // force immediate preview reload
   toast('🎨 Тема «' + t.name + '» применена');
 }
 
@@ -791,25 +793,25 @@ ${Object.entries(THEMES).map(([k,t])=>`
 <div class="panel"><div class="phdr">Редактор рамки</div><div class="pbody">
 <div class="fr"><div class="fl">Цвет рамки</div>
   <div style="display:flex;gap:8px;align-items:center">
-    <input type="color" value="#F6C35B" oninput="G.style.border.color='rgba('+hexToRgb(this.value)+',0.6)';schedulePreview()" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px;background:#1a1d26"/>
+    <input type="color" value="${rgbaToHex(b.color||'rgba(246,195,91,0.6)')}" oninput="G.style.border.color='rgba('+hexToRgb(this.value)+',0.6)';this.nextElementSibling.value=G.style.border.color;clearTimeout(pvTimer);loadPreview();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px;background:#1a1d26"/>
     <input type="text" class="gf" data-gk="style.border.color" value="${esc(b.color||'rgba(246,195,91,0.6)')}" style="font-family:monospace;font-size:11px" placeholder="rgba(...)"/>
   </div>
 </div>
 <div class="fr"><div class="fl">Толщина рамки</div>
   <div style="display:flex;align-items:center;gap:8px">
-    <input type="range" min="0" max="6" step="1" value="${b.width||2}" oninput="G.style.border.width=this.value;this.nextElementSibling.textContent=this.value+'px';schedulePreview()" style="flex:1"/>
+    <input type="range" min="0" max="6" step="1" value="${b.width||2}" oninput="G.style.border.width=this.value;this.nextElementSibling.textContent=this.value+'px';clearTimeout(pvTimer);loadPreview();" style="flex:1"/>
     <span style="font-size:11px;color:#f6c35b;min-width:28px">${b.width||2}px</span>
   </div>
 </div>
 <div class="fr"><div class="fl">Скругление углов</div>
   <div style="display:flex;align-items:center;gap:8px">
-    <input type="range" min="0" max="24" step="1" value="${b.radius||4}" oninput="G.style.border.radius=this.value;this.nextElementSibling.textContent=this.value+'px';schedulePreview()" style="flex:1"/>
+    <input type="range" min="0" max="24" step="1" value="${b.radius||4}" oninput="G.style.border.radius=this.value;this.nextElementSibling.textContent=this.value+'px';clearTimeout(pvTimer);loadPreview();" style="flex:1"/>
     <span style="font-size:11px;color:#f6c35b;min-width:28px">${b.radius||4}px</span>
   </div>
 </div>
 <div class="fr"><div class="fl">Размер свечения</div>
   <div style="display:flex;align-items:center;gap:8px">
-    <input type="range" min="0" max="120" step="5" value="${b.glowSize||60}" oninput="G.style.border.glowSize=this.value;this.nextElementSibling.textContent=this.value+'px';schedulePreview()" style="flex:1"/>
+    <input type="range" min="0" max="120" step="5" value="${b.glowSize||60}" oninput="G.style.border.glowSize=this.value;this.nextElementSibling.textContent=this.value+'px';clearTimeout(pvTimer);loadPreview();" style="flex:1"/>
     <span style="font-size:11px;color:#f6c35b;min-width:28px">${b.glowSize||60}px</span>
   </div>
 </div>
@@ -866,17 +868,30 @@ function hexToRgb(hex) {
   return r+','+g+','+b;
 }
 
+function rgbaToHex(rgba) {
+  // Convert "rgba(r,g,b,a)" or "#hex" to "#rrggbb" for color picker
+  if (!rgba) return '#F6C35B';
+  if (rgba.startsWith('#')) return rgba.slice(0,7);
+  const m = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (!m) return '#F6C35B';
+  return '#' + [m[1],m[2],m[3]].map(x => parseInt(x).toString(16).padStart(2,'0')).join('');
+}
+
 function setBg(grad) {
   if (!G.style) G.style = {};
+  if (!G.style.border) G.style.border = {color:'rgba(246,195,91,0.6)',width:'2',radius:'4',glow:'rgba(246,195,91,0.2)',glowSize:'60'};
   G.style.cardBg = grad;
+  // Update preview swatch immediately
   const preview = document.getElementById('cardBgPreview');
   if (preview) preview.style.background = grad;
-  schedulePreview();
-  // Update active state on swatches
+  // Update active swatch border
   document.querySelectorAll('[onclick^="setBg"]').forEach(el => {
     const isActive = el.getAttribute('onclick').includes(grad.replace(/'/g,"\'"));
     el.style.border = isActive ? '2px solid #f6c35b' : '1px solid #252836';
   });
+  // Force immediate preview reload (not debounced)
+  clearTimeout(pvTimer);
+  loadPreview();
 }
 
 function updateCustomBg() {
