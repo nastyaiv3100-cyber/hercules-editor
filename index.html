@@ -227,14 +227,11 @@ select{cursor:pointer}select option{background:#111420}
 
 <!-- COPYRIGHT WATERMARK (always visible) -->
 <div class="copyright-bar">
-  <span>🏛️</span>
-  <span>Тайная картинка</span>
-  <span style="color:#252836">•</span>
+  <span>🎬 Тайная картинка</span>
+  <span style="color:#3a3d50">•</span>
   <span>Создано для учителей</span>
-  <span style="color:#252836">•</span>
+  <span style="color:#3a3d50">•</span>
   <a href="https://t.me/lesson_play" target="_blank" id="authorLink">© Урок на Play</a>
-  <span style="color:#252836">•</span>
-  <span>Все права защищены</span>
 </div>
 
 <!-- PUBLISH MODAL -->
@@ -1156,9 +1153,9 @@ function rBulkCreate() {
     + '<div style="margin-bottom:10px">'
     + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Тип заданий</div>'
     + '<select id="bulkType" onchange="updateBulkUI()" style="width:220px">'
+    + '<option value="wordguess">✍ Свободный ответ</option>'
     + '<option value="multichoice">☑ Выбор ответа (1 вопрос + варианты)</option>'
     + '<option value="truefalse">✔ Верно / Неверно</option>'
-    + '<option value="wordguess">✍ Свободный ответ</option>'
     + '</select>'
     + '</div>'
 
@@ -1174,7 +1171,7 @@ function rBulkCreate() {
     + '<textarea id="bulkRight" class="tai" placeholder="А\n56\nМосква" style="min-height:160px;font-size:11px;line-height:1.8" oninput="updateBulkPreview()"></textarea>'
     + '</div>'
 
-    + '<div id="bulkWrongWrap">'
+    + '<div id="bulkWrongWrap" style="opacity:0.3">'
     + '<div style="font-size:10px;font-weight:700;color:#ff9b6a;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">❌ Неверные варианты <span style="color:#555870;font-weight:400">(через |)</span></div>'
     + '<textarea id="bulkWrong" class="tai" placeholder="Б | В | Г\n48 | 54 | 63\nПитер | Казань | Сочи" style="min-height:160px;font-size:11px;line-height:1.8"></textarea>'
     + '</div>'
