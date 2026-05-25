@@ -1148,127 +1148,173 @@ function showBulkCreate() {
 }
 
 function rBulkCreate() {
-  return `<div class="panel" style="border-color:#8a6bff40"><div class="phdr" style="color:#8a6bff">⚡ Быстрое создание заданий</div><div class="pbody">
-<div class="note note-blue" style="margin-bottom:12px">Введите вопросы и ответы через <b style="color:#f6c35b">|</b> — система автоматически создаст задания типа «Верно/Неверно» или «Выбор ответа».</div>
+  return '<div class="panel" style="border-color:#8a6bff40"><div class="phdr" style="color:#8a6bff">⚡ Быстрое создание заданий</div><div class="pbody">'
+    + '<div class="note note-blue" style="margin-bottom:14px">'
+    + 'Каждая строка = одно задание. Вопросы, правильные и неправильные ответы — построчно.<br>'
+    + 'Система автоматически распределяет задания по тайлам.'
+    + '</div>'
 
-<div class="fr"><div class="fl" style="padding-top:0">Тип заданий</div>
-<select id="bulkType" style="width:200px">
-  <option value="truefalse">✔ Верно / Неверно</option>
-  <option value="multichoice">☑ Выбор ответа</option>
-  <option value="wordguess">✍ Свободный ответ</option>
-</select></div>
+    + '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">'
+    + '<div style="flex:1;min-width:160px">'
+    + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Тип заданий</div>'
+    + '<select id="bulkType" onchange="updateBulkPlaceholders()" style="width:100%">'
+    + '<option value="multichoice">☑ Выбор ответа</option>'
+    + '<option value="truefalse">✔ Верно / Неверно</option>'
+    + '<option value="wordguess">✍ Свободный ответ</option>'
+    + '</select></div>'
 
-<div style="margin-bottom:8px">
-  <div style="font-size:10px;color:#555870;margin-bottom:5px">Вопросы (через |):</div>
-  <textarea id="bulkQuestions" class="tai" placeholder="Буква А — гласная?|Буква М — гласная?|2+2=4?|Столица России — Москва?" style="min-height:70px;font-size:11px"></textarea>
-</div>
+    + '<div style="flex:1;min-width:100px">'
+    + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Вопросов на тайл</div>'
+    + '<select id="bulkPerTile" style="width:100%">'
+    + '<option value="1">1 вопрос</option>'
+    + '<option value="2">2 вопроса</option>'
+    + '<option value="3" selected>3 вопроса</option>'
+    + '<option value="4">4 вопроса</option>'
+    + '<option value="5">5 вопросов</option>'
+    + '</select></div>'
+    + '</div>'
 
-<div style="margin-bottom:8px">
-  <div style="font-size:10px;color:#555870;margin-bottom:5px">Правильные ответы (через |, по порядку):</div>
-  <textarea id="bulkCorrect" class="tai" placeholder="true|false|true|true" style="min-height:50px;font-size:11px"></textarea>
-</div>
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
 
-<div style="margin-bottom:12px" id="bulkWrongBlock">
-  <div style="font-size:10px;color:#555870;margin-bottom:5px">Неправильные варианты (через |, для multichoice):</div>
-  <textarea id="bulkWrong" class="tai" placeholder="false|true|false|false" style="min-height:50px;font-size:11px"></textarea>
-</div>
+    // Вопросы
+    + '<div>'
+    + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Вопрос (текст тайла)</div>'
+    + '<textarea id="bulkQ" class="tai" placeholder="2 + 2 = ?\nСтолица Франции?\n3 × 4 = ?" style="min-height:140px;font-size:11px;line-height:1.6" oninput="updateBulkPreview()"></textarea>'
+    + '</div>'
 
-<div style="display:flex;gap:8px;align-items:center">
-  <button class="btn btn-gold" onclick="generateBulkTasks()" style="font-size:12px">⚡ Создать задания</button>
-  <button class="btn btn-ghost btn-sm" onclick="previewBulk()">👁 Предпросмотр</button>
-</div>
-<div id="bulkPreview" style="margin-top:10px;font-size:10px;color:#7edb8a;min-height:16px"></div>
-</div></div>`;
+    // Правильные
+    + '<div>'
+    + '<div style="font-size:10px;font-weight:700;color:#7edb8a;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">✅ Правильный ответ</div>'
+    + '<textarea id="bulkRight" class="tai" placeholder="4\nПариж\n12" style="min-height:140px;font-size:11px;line-height:1.6" oninput="updateBulkPreview()"></textarea>'
+    + '</div>'
+
+    // Неправильные
+    + '<div id="bulkWrongWrap">'
+    + '<div style="font-size:10px;font-weight:700;color:#ff9b6a;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">❌ Неправильные (через |)</div>'
+    + '<textarea id="bulkWrong" class="tai" placeholder="3 | 5 | 6\nЛондон | Берлин | Мадрид\n10 | 8 | 6" style="min-height:140px;font-size:11px;line-height:1.6" oninput="updateBulkPreview()"></textarea>'
+    + '</div>'
+
+    + '</div>'
+
+    + '<div id="bulkPreviewBox" style="font-size:10px;color:#7edb8a;margin-bottom:12px;min-height:16px"></div>'
+
+    + '<div style="display:flex;gap:8px;align-items:center">'
+    + '<button class="btn btn-gold" onclick="generateBulkTasks()" style="font-size:12px;padding:9px 20px">⚡ Создать задания</button>'
+    + '<button class="btn btn-ghost btn-sm" onclick="clearBulkForm()">🗑 Очистить</button>'
+    + '</div>'
+    + '</div></div>';
+}
+
+function updateBulkPlaceholders() {
+  const type = document.getElementById('bulkType').value;
+  const wrap = document.getElementById('bulkWrongWrap');
+  const perTile = document.getElementById('bulkPerTile');
+  if (wrap) wrap.style.display = type === 'wordguess' ? 'none' : '';
+  if (perTile) {
+    if (type === 'truefalse') perTile.value = '5';
+    else if (type === 'multichoice') perTile.value = '3';
+    else perTile.value = '4';
+  }
+  updateBulkPreview();
+}
+
+function updateBulkPreview() {
+  const qEl = document.getElementById('bulkQ');
+  const preview = document.getElementById('bulkPreviewBox');
+  if (!qEl || !preview) return;
+  const lines = qEl.value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const perTile = parseInt(document.getElementById('bulkPerTile').value) || 3;
+  const tiles = Math.ceil(lines.length / perTile);
+  if (lines.length > 0) {
+    preview.textContent = '→ ' + lines.length + ' вопросов → ' + tiles + ' тайлов';
+  } else {
+    preview.textContent = '';
+  }
+}
+
+function clearBulkForm() {
+  ['bulkQ','bulkRight','bulkWrong'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  updateBulkPreview();
 }
 
 function generateBulkTasks() {
   const type = document.getElementById('bulkType').value;
-  const qRaw = document.getElementById('bulkQuestions').value.trim();
-  const cRaw = document.getElementById('bulkCorrect').value.trim();
-  const wRaw = document.getElementById('bulkWrong') ? document.getElementById('bulkWrong').value.trim() : '';
+  const perTile = parseInt(document.getElementById('bulkPerTile').value) || 3;
+  const qRaw = document.getElementById('bulkQ').value.trim();
+  const rRaw = document.getElementById('bulkRight').value.trim();
+  const wRaw = (document.getElementById('bulkWrong') || {}).value || '';
 
   if (!qRaw) { toast('⚠️ Введите вопросы'); return; }
 
-  const questions = qRaw.split('|').map(s=>s.trim()).filter(Boolean);
-  const corrects  = cRaw.split('|').map(s=>s.trim());
-  const wrongs    = wRaw.split('|').map(s=>s.trim());
+  const questions = qRaw.split('\n').map(s=>s.trim()).filter(Boolean);
+  const rights    = rRaw.split('\n').map(s=>s.trim());
+  const wrongs    = wRaw.split('\n').map(s=>s.trim());
 
   const newTasks = [];
 
-  if (type === 'truefalse') {
-    // Group into bundles of 5 per tile
-    const chunkSize = 5;
-    for (let i = 0; i < questions.length; i += chunkSize) {
-      const chunk = questions.slice(i, i + chunkSize);
-      const stmts = chunk.map((q, j) => ({
-        text: q,
-        answer: (corrects[i+j]||'true').toLowerCase() === 'true' || corrects[i+j] === '1' ? 'true' : 'false'
-      }));
-      newTasks.push({
-        type: 'truefalse',
-        title: `Задание ${G.puzzles.length + newTasks.length + 1}`,
-        question: 'Верно или неверно?',
-        statements: stmts
-      });
-    }
-  } else if (type === 'multichoice') {
-    // Each question = one tile with 4 options
-    const groupSize = 3; // 3 questions per tile
-    for (let i = 0; i < questions.length; i += groupSize) {
-      const chunk = questions.slice(i, i + groupSize);
+  if (type === 'multichoice') {
+    for (let i = 0; i < questions.length; i += perTile) {
+      const chunk = questions.slice(i, i + perTile);
       const qs = chunk.map((q, j) => {
-        const correct = corrects[i+j] || '';
-        const wrong = wrongs[i+j] || '';
-        const wrongOpts = wrong.split(',').map(s=>s.trim()).filter(Boolean).slice(0,3);
-        // Build options: correct + up to 3 wrong, shuffled
-        const opts = [correct, ...wrongOpts].slice(0,4);
+        const correct = rights[i+j] || '';
+        const wrongLine = wrongs[i+j] || '';
+        const wrongOpts = wrongLine.split('|').map(s=>s.trim()).filter(Boolean).slice(0,3);
+        const opts = [correct, ...wrongOpts];
         while (opts.length < 4) opts.push('—');
-        // Shuffle and find correct index
         const shuffled = [...opts].sort(()=>Math.random()-0.5);
-        const ansIdx = shuffled.indexOf(correct);
-        return { q, options: shuffled, answer: Math.max(0, ansIdx) };
+        const ansIdx = Math.max(0, shuffled.indexOf(correct));
+        return { q, options: shuffled, answer: ansIdx };
       });
       newTasks.push({
         type: 'multichoice',
-        title: `Задание ${G.puzzles.length + newTasks.length + 1}`,
+        title: 'Задание ' + (G.puzzles.length + newTasks.length + 1),
         question: 'Выбери правильный ответ:',
         questions: qs
       });
     }
+  } else if (type === 'truefalse') {
+    for (let i = 0; i < questions.length; i += perTile) {
+      const chunk = questions.slice(i, i + perTile);
+      const stmts = chunk.map((q, j) => ({
+        text: q,
+        answer: (rights[i+j]||'true').toLowerCase() === 'true' || rights[i+j] === '1' ? 'true' : 'false'
+      }));
+      newTasks.push({
+        type: 'truefalse',
+        title: 'Задание ' + (G.puzzles.length + newTasks.length + 1),
+        question: 'Верно или неверно?',
+        statements: stmts
+      });
+    }
   } else if (type === 'wordguess') {
-    const groupSize = 4;
-    for (let i = 0; i < questions.length; i += groupSize) {
-      const chunk = questions.slice(i, i + groupSize);
-      const clues = chunk.map((q, j) => ({ hint: q, answer: corrects[i+j] || '' }));
+    for (let i = 0; i < questions.length; i += perTile) {
+      const chunk = questions.slice(i, i + perTile);
+      const clues = chunk.map((q, j) => ({ hint: q, answer: rights[i+j] || '' }));
       newTasks.push({
         type: 'wordguess',
-        title: `Задание ${G.puzzles.length + newTasks.length + 1}`,
+        title: 'Задание ' + (G.puzzles.length + newTasks.length + 1),
         question: 'Дайте ответ:',
         clues
       });
     }
   }
 
+  if (newTasks.length === 0) { toast('⚠️ Не удалось создать задания'); return; }
+
   G.puzzles.push(...newTasks);
-  // Auto-update grid size
   const total = G.puzzles.length;
   G.game.cols = Math.min(3, total);
   G.game.rows = Math.ceil(total / G.game.cols);
 
+  showingBulk = false;
   renderEditor();
   clearTimeout(pvTimer); loadPreview();
-  toast('✅ Создано ' + newTasks.length + ' заданий!');
+  toast('✅ Создано ' + newTasks.length + ' тайлов!');
 }
 
-function previewBulk() {
-  const qRaw = document.getElementById('bulkQuestions').value.trim();
-  const questions = qRaw.split('|').map(s=>s.trim()).filter(Boolean);
-  const type = document.getElementById('bulkType').value;
-  const perTile = type === 'truefalse' ? 5 : type === 'multichoice' ? 3 : 4;
-  const tiles = Math.ceil(questions.length / perTile);
-  const preview = document.getElementById('bulkPreview');
-  if (preview) preview.textContent = `→ ${questions.length} вопросов → ${tiles} заданий (тайлов)`;
-}
 
 
 function rExport(){
