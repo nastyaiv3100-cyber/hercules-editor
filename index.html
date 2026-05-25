@@ -1150,86 +1150,61 @@ function showBulkCreate() {
 function rBulkCreate() {
   return '<div class="panel" style="border-color:#8a6bff40"><div class="phdr" style="color:#8a6bff">⚡ Быстрое создание заданий</div><div class="pbody">'
     + '<div class="note note-blue" style="margin-bottom:14px">'
-    + 'Каждая строка = одно задание. Вопросы, правильные и неправильные ответы — построчно.<br>'
-    + 'Система автоматически распределяет задания по тайлам.'
+    + 'Каждая строка = один тайл. Скопируйте вопросы из документа и вставьте — сколько строк, столько тайлов.'
     + '</div>'
 
-    + '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">'
-    + '<div style="flex:1;min-width:160px">'
+    + '<div style="margin-bottom:10px">'
     + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Тип заданий</div>'
-    + '<select id="bulkType" onchange="updateBulkPlaceholders()" style="width:100%">'
-    + '<option value="multichoice">☑ Выбор ответа</option>'
+    + '<select id="bulkType" onchange="updateBulkUI()" style="width:220px">'
+    + '<option value="multichoice">☑ Выбор ответа (1 вопрос + варианты)</option>'
     + '<option value="truefalse">✔ Верно / Неверно</option>'
     + '<option value="wordguess">✍ Свободный ответ</option>'
-    + '</select></div>'
-
-    + '<div style="flex:1;min-width:100px">'
-    + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Вопросов на тайл</div>'
-    + '<select id="bulkPerTile" style="width:100%">'
-    + '<option value="1">1 вопрос</option>'
-    + '<option value="2">2 вопроса</option>'
-    + '<option value="3" selected>3 вопроса</option>'
-    + '<option value="4">4 вопроса</option>'
-    + '<option value="5">5 вопросов</option>'
-    + '</select></div>'
+    + '</select>'
     + '</div>'
 
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
 
-    // Вопросы
     + '<div>'
-    + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Вопрос (текст тайла)</div>'
-    + '<textarea id="bulkQ" class="tai" placeholder="2 + 2 = ?\nСтолица Франции?\n3 × 4 = ?" style="min-height:140px;font-size:11px;line-height:1.6" oninput="updateBulkPreview()"></textarea>'
+    + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Вопрос <span style="color:#555870;font-weight:400">(каждая строка = тайл)</span></div>'
+    + '<textarea id="bulkQ" class="tai" placeholder="Какая буква гласная?\nСколько будет 7 × 8?\nСтолица России?" style="min-height:160px;font-size:11px;line-height:1.8" oninput="updateBulkPreview()"></textarea>'
     + '</div>'
 
-    // Правильные
     + '<div>'
-    + '<div style="font-size:10px;font-weight:700;color:#7edb8a;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">✅ Правильный ответ</div>'
-    + '<textarea id="bulkRight" class="tai" placeholder="4\nПариж\n12" style="min-height:140px;font-size:11px;line-height:1.6" oninput="updateBulkPreview()"></textarea>'
+    + '<div style="font-size:10px;font-weight:700;color:#7edb8a;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">✅ Правильный ответ <span style="color:#555870;font-weight:400">(построчно)</span></div>'
+    + '<textarea id="bulkRight" class="tai" placeholder="А\n56\nМосква" style="min-height:160px;font-size:11px;line-height:1.8" oninput="updateBulkPreview()"></textarea>'
     + '</div>'
 
-    // Неправильные
     + '<div id="bulkWrongWrap">'
-    + '<div style="font-size:10px;font-weight:700;color:#ff9b6a;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">❌ Неправильные (через |)</div>'
-    + '<textarea id="bulkWrong" class="tai" placeholder="3 | 5 | 6\nЛондон | Берлин | Мадрид\n10 | 8 | 6" style="min-height:140px;font-size:11px;line-height:1.6" oninput="updateBulkPreview()"></textarea>'
+    + '<div style="font-size:10px;font-weight:700;color:#ff9b6a;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">❌ Неверные варианты <span style="color:#555870;font-weight:400">(через |)</span></div>'
+    + '<textarea id="bulkWrong" class="tai" placeholder="Б | В | Г\n48 | 54 | 63\nПитер | Казань | Сочи" style="min-height:160px;font-size:11px;line-height:1.8"></textarea>'
     + '</div>'
 
     + '</div>'
 
-    + '<div id="bulkPreviewBox" style="font-size:10px;color:#7edb8a;margin-bottom:12px;min-height:16px"></div>'
+    + '<div id="bulkPreviewBox" style="font-size:11px;color:#7edb8a;margin-bottom:12px;min-height:18px"></div>'
 
     + '<div style="display:flex;gap:8px;align-items:center">'
-    + '<button class="btn btn-gold" onclick="generateBulkTasks()" style="font-size:12px;padding:9px 20px">⚡ Создать задания</button>'
+    + '<button class="btn btn-gold" onclick="generateBulkTasks()" style="font-size:12px;padding:10px 22px">⚡ Создать тайлы</button>'
     + '<button class="btn btn-ghost btn-sm" onclick="clearBulkForm()">🗑 Очистить</button>'
     + '</div>'
     + '</div></div>';
 }
 
-function updateBulkPlaceholders() {
+function updateBulkUI() {
   const type = document.getElementById('bulkType').value;
   const wrap = document.getElementById('bulkWrongWrap');
-  const perTile = document.getElementById('bulkPerTile');
-  if (wrap) wrap.style.display = type === 'wordguess' ? 'none' : '';
-  if (perTile) {
-    if (type === 'truefalse') perTile.value = '5';
-    else if (type === 'multichoice') perTile.value = '3';
-    else perTile.value = '4';
-  }
+  if (wrap) wrap.style.opacity = type === 'wordguess' ? '0.3' : '1';
   updateBulkPreview();
 }
 
 function updateBulkPreview() {
   const qEl = document.getElementById('bulkQ');
-  const preview = document.getElementById('bulkPreviewBox');
-  if (!qEl || !preview) return;
-  const lines = qEl.value.split('\n').map(s=>s.trim()).filter(Boolean);
-  const perTile = parseInt(document.getElementById('bulkPerTile').value) || 3;
-  const tiles = Math.ceil(lines.length / perTile);
-  if (lines.length > 0) {
-    preview.textContent = '→ ' + lines.length + ' вопросов → ' + tiles + ' тайлов';
-  } else {
-    preview.textContent = '';
-  }
+  const box = document.getElementById('bulkPreviewBox');
+  if (!qEl || !box) return;
+  const lines = qEl.value.split('\n').map(s => s.trim()).filter(Boolean);
+  box.textContent = lines.length > 0
+    ? '→ ' + lines.length + ' строк → ' + lines.length + ' тайлов'
+    : '';
 }
 
 function clearBulkForm() {
@@ -1242,69 +1217,59 @@ function clearBulkForm() {
 
 function generateBulkTasks() {
   const type = document.getElementById('bulkType').value;
-  const perTile = parseInt(document.getElementById('bulkPerTile').value) || 3;
   const qRaw = document.getElementById('bulkQ').value.trim();
   const rRaw = document.getElementById('bulkRight').value.trim();
-  const wRaw = (document.getElementById('bulkWrong') || {}).value || '';
+  const wEl  = document.getElementById('bulkWrong');
+  const wRaw = wEl ? wEl.value.trim() : '';
 
   if (!qRaw) { toast('⚠️ Введите вопросы'); return; }
 
-  const questions = qRaw.split('\n').map(s=>s.trim()).filter(Boolean);
-  const rights    = rRaw.split('\n').map(s=>s.trim());
-  const wrongs    = wRaw.split('\n').map(s=>s.trim());
+  const questions = qRaw.split('\n').map(s => s.trim()).filter(Boolean);
+  const rights    = rRaw.split('\n').map(s => s.trim());
+  const wrongs    = wRaw.split('\n').map(s => s.trim());
 
   const newTasks = [];
 
-  if (type === 'multichoice') {
-    for (let i = 0; i < questions.length; i += perTile) {
-      const chunk = questions.slice(i, i + perTile);
-      const qs = chunk.map((q, j) => {
-        const correct = rights[i+j] || '';
-        const wrongLine = wrongs[i+j] || '';
-        const wrongOpts = wrongLine.split('|').map(s=>s.trim()).filter(Boolean).slice(0,3);
-        const opts = [correct, ...wrongOpts];
-        while (opts.length < 4) opts.push('—');
-        const shuffled = [...opts].sort(()=>Math.random()-0.5);
-        const ansIdx = Math.max(0, shuffled.indexOf(correct));
-        return { q, options: shuffled, answer: ansIdx };
-      });
+  questions.forEach(function(q, i) {
+    const correct = rights[i] || '';
+
+    if (type === 'multichoice') {
+      const wrongLine = wrongs[i] || '';
+      const wrongOpts = wrongLine.split('|').map(s => s.trim()).filter(Boolean).slice(0, 3);
+      const opts = [correct].concat(wrongOpts);
+      while (opts.length < 4) opts.push('—');
+      const shuffled = opts.slice().sort(function() { return Math.random() - 0.5; });
+      const ansIdx = Math.max(0, shuffled.indexOf(correct));
       newTasks.push({
         type: 'multichoice',
         title: 'Задание ' + (G.puzzles.length + newTasks.length + 1),
-        question: 'Выбери правильный ответ:',
-        questions: qs
+        question: q,
+        questions: [{ q: q, options: shuffled, answer: ansIdx }]
       });
-    }
-  } else if (type === 'truefalse') {
-    for (let i = 0; i < questions.length; i += perTile) {
-      const chunk = questions.slice(i, i + perTile);
-      const stmts = chunk.map((q, j) => ({
-        text: q,
-        answer: (rights[i+j]||'true').toLowerCase() === 'true' || rights[i+j] === '1' ? 'true' : 'false'
-      }));
+
+    } else if (type === 'truefalse') {
+      const ans = correct.toLowerCase();
+      const isTrue = ans === 'верно' || ans === 'true' || ans === 'да' || ans === '1' || ans === '+';
       newTasks.push({
         type: 'truefalse',
         title: 'Задание ' + (G.puzzles.length + newTasks.length + 1),
         question: 'Верно или неверно?',
-        statements: stmts
+        statements: [{ text: q, answer: isTrue ? 'true' : 'false' }]
       });
-    }
-  } else if (type === 'wordguess') {
-    for (let i = 0; i < questions.length; i += perTile) {
-      const chunk = questions.slice(i, i + perTile);
-      const clues = chunk.map((q, j) => ({ hint: q, answer: rights[i+j] || '' }));
+
+    } else if (type === 'wordguess') {
       newTasks.push({
         type: 'wordguess',
         title: 'Задание ' + (G.puzzles.length + newTasks.length + 1),
-        question: 'Дайте ответ:',
-        clues
+        question: q,
+        clues: [{ hint: q, answer: correct }]
       });
     }
-  }
+  });
 
   if (newTasks.length === 0) { toast('⚠️ Не удалось создать задания'); return; }
 
-  G.puzzles.push(...newTasks);
+  G.puzzles.push.apply(G.puzzles, newTasks);
   const total = G.puzzles.length;
   G.game.cols = Math.min(3, total);
   G.game.rows = Math.ceil(total / G.game.cols);
