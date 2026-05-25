@@ -167,7 +167,7 @@ select{cursor:pointer}select option{background:#111420}
     <div class="nav-item active" onclick="showSec('start')" id="ns-start"><div class="nav-dot" style="background:#f6c35b"></div>Стартовый экран</div>
     <div class="nav-item" onclick="showSec('game')" id="ns-game"><div class="nav-dot" style="background:#57d6ff"></div>Игровой экран</div>
     <div class="nav-item" onclick="showSec('tasks')" id="ns-tasks"><div class="nav-dot" style="background:#8a6bff"></div>Задания</div>
-    <div class="nav-item" onclick="showSec('overlays')" id="ns-overlays"><div class="nav-dot" style="background:#7edb8a"></div>Оверлеи / Финал</div>
+    <div class="nav-item" onclick="showSec('overlays')" id="ns-overlays"><div class="nav-dot" style="background:#7edb8a"></div>💬 Ошибки и финал</div>
     <div class="nav-item" onclick="showSec('theme')" id="ns-theme"><div class="nav-dot" style="background:#ff9b6a"></div>🎨 Тема и стиль</div>
     <div class="nav-item" onclick="showSec('images')" id="ns-images"><div class="nav-dot" style="background:#ff9b6a"></div>Изображения</div>
     <div class="nav-item" onclick="showSec('langs')" id="ns-langs"><div class="nav-dot" style="background:#57d6ff"></div>🌐 Языки и шрифты</div>
@@ -523,6 +523,9 @@ ${f('Подзаголовок','game.topSub',g.topSub)}${f('Иконка про�
 ${f('Столбцов','game.cols',g.cols,'number','min="1" max="8" style="width:70px"')}
 ${f('Строк','game.rows',g.rows,'number','min="1" max="8" style="width:70px"')}
 </div></div>
+  <div class="panel"><div class="phdr">⚙️ Настройки игры</div><div class="pbody">
+    ${rGameSettings()}
+  </div></div>
   <div class="panel"><div class="phdr">🔊 Звуки</div><div class="pbody">
     ${rSounds()}
   </div></div>
@@ -579,7 +582,7 @@ function rGameSettings() {
     + '</div></div>';
 }
 
-function rOverlays(){const o=G.overlays;return`<div class="sec-title">💬 Оверлеи и финал</div>
+function rOverlays(){const o=G.overlays;return`<div class="sec-title">💬 Ошибки, открытка и финал</div>
 <div class="panel"><div class="phdr">❌ Ошибка</div><div class="pbody">
 ${f('Иконка','overlays.errorIcon',o.errorIcon)}${f('Заголовок','overlays.errorTitle',o.errorTitle)}${t('Текст','overlays.errorText',o.errorText)}
 </div></div>
