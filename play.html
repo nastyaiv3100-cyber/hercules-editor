@@ -364,6 +364,10 @@ window.__gameDataPromise = loadGameData();
           <span class="progress-icon" id="progressIcon"></span>
           <span class="progress-text" id="progressText">0 / ?</span>
         </div>
+        <div class="progress-pill" id="errorPill" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.4);display:none">
+          <span style="font-size:12px">❌</span>
+          <span class="progress-text" id="errorCount">0</span>
+        </div>
         <button class="sound-toggle" id="soundToggle"><span id="soundIcon">🔊</span></button>
       </div>
     </div>
@@ -585,7 +589,7 @@ if(p.type==="fill"){const list=document.createElement("div");list.className="fil
 else if(p.type==="match"){const grid=document.createElement("div");grid.className="match-grid";(p.pairs||[]).forEach((pair)=>{const lbl=document.createElement("div");lbl.className="match-left";lbl.textContent=pair.left;const arr=document.createElement("div");arr.className="match-arrow";arr.textContent="→";const sel=document.createElement("select");sel.className="match-sel";const ph=document.createElement("option");ph.value="";ph.textContent="— выбери —";sel.appendChild(ph);(p.options||[]).forEach(opt=>{const o=document.createElement("option");o.value=opt;o.textContent=opt;sel.appendChild(o);});zMatchSels.push({sel,answer:pair.answer});grid.append(lbl,arr,sel);});zoomBodyEl.appendChild(grid);}
 else if(p.type==="truefalse"){const list=document.createElement("div");list.className="tf-list";(p.statements||[]).forEach((st)=>{const state={selected:null,answer:st.answer};zTFState.push(state);const row=document.createElement("div");row.className="tf-row";const txt=document.createElement("div");txt.className="tf-text";txt.textContent=st.text;const btns=document.createElement("div");btns.className="tf-btns";const tBtn=document.createElement("button");tBtn.className="tf-btn tf-btn-true";tBtn.textContent="ВЕРНО";const fBtn=document.createElement("button");fBtn.className="tf-btn tf-btn-false";fBtn.textContent="НЕВЕРНО";tBtn.addEventListener("click",()=>{state.selected="true";tBtn.classList.add("selected");fBtn.classList.remove("selected");});fBtn.addEventListener("click",()=>{state.selected="false";fBtn.classList.add("selected");tBtn.classList.remove("selected");});btns.append(tBtn,fBtn);row.append(txt,btns);list.appendChild(row);});zoomBodyEl.appendChild(list);}
 else if(p.type==="order"){const list=document.createElement("div");list.className="order-list";(p.items||[]).forEach(it=>{const row=document.createElement("div");row.className="order-row";const inp=document.createElement("input");inp.type="text";inp.className="inp-base order-num-inp";inp.placeholder="#";inp.maxLength=2;inp.setAttribute("inputmode","numeric");inp.addEventListener("keydown",e=>{if(e.key==="Enter")zoomSubmitBtn.click();});const txt=document.createElement("div");txt.className="order-item";txt.textContent=it.text;zOrderInps.push({inp,answer:it.answer});row.append(inp,txt);list.appendChild(row);});zoomBodyEl.appendChild(list);setTimeout(()=>zOrderInps[0]&&zOrderInps[0].inp.focus(),60);}
-else if(p.type==="multichoice"){(p.questions||[]).forEach((q)=>{const state={selected:null,answer:q.answer};zMCState.push(state);const qTitle=document.createElement("div");qTitle.style.cssText="font-family:'Lora',serif;font-size:13px;color:rgba(248,252,255,0.88);margin-bottom:8px;font-style:italic;";qTitle.textContent=(zMCState.length)+". "+q.q;const mcList=document.createElement("div");mcList.className="mc-list";mcList.style.marginBottom="16px";(q.options||[]).forEach((opt,oi)=>{const item=document.createElement("div");item.className="mc-opt";const ltr=document.createElement("span");ltr.className="mc-letter";ltr.textContent=["А","Б","В","Г"][oi]||(oi+1);const txt=document.createElement("span");txt.textContent=opt;item.append(ltr,txt);item.addEventListener("click",()=>{state.selected=oi;mcList.querySelectorAll(".mc-opt").forEach(el=>el.classList.remove("selected"));item.classList.add("selected");});mcList.appendChild(item);});zoomBodyEl.append(qTitle,mcList);});}
+else if(p.type==="multichoice"){(p.questions||[]).forEach((q)=>{let opts=q.options?[...q.options]:[];let correctVal=opts[q.answer]||opts[0];if(D.settings&&D.settings.shuffleOptions!==false){for(let si=opts.length-1;si>0;si--){const ri=Math.floor(Math.random()*(si+1));[opts[si],opts[ri]]=[opts[ri],opts[si]];}}const shuffledAnswer=opts.indexOf(correctVal);const state={selected:null,answer:shuffledAnswer,options:opts};zMCState.push(state);const qTitle=document.createElement("div");qTitle.style.cssText="font-family:'Lora',serif;font-size:13px;color:rgba(248,252,255,0.88);margin-bottom:8px;font-style:italic;";qTitle.textContent=(zMCState.length)+". "+q.q;const mcList=document.createElement("div");mcList.className="mc-list";mcList.style.marginBottom="16px";(q.options||[]).forEach((opt,oi)=>{const item=document.createElement("div");item.className="mc-opt";const ltr=document.createElement("span");ltr.className="mc-letter";ltr.textContent=["А","Б","В","Г"][oi]||(oi+1);const txt=document.createElement("span");txt.textContent=opt;item.append(ltr,txt);item.addEventListener("click",()=>{state.selected=oi;mcList.querySelectorAll(".mc-opt").forEach(el=>el.classList.remove("selected"));item.classList.add("selected");});mcList.appendChild(item);});zoomBodyEl.append(qTitle,mcList);});}
 else if(p.type==="wordguess"){const grid=document.createElement("div");grid.className="word-grid";(p.clues||[]).forEach((cl,ci)=>{const row=document.createElement("div");row.className="word-row";const num=document.createElement("div");num.className="word-num";num.textContent=(ci+1)+".";const hint=document.createElement("div");hint.className="word-hint";hint.textContent=cl.hint;const inp=document.createElement("input");inp.type="text";inp.className="inp-base word-inp";inp.placeholder="ответ...";inp.autocomplete="off";inp.addEventListener("keydown",e=>{if(e.key==="Enter")zoomSubmitBtn.click();});zWordInps.push({inp,answer:cl.answer});row.append(num,hint,inp);grid.appendChild(row);});zoomBodyEl.appendChild(grid);setTimeout(()=>zWordInps[0]&&zWordInps[0].inp.focus(),60);}
 buildDraftCanvas(zoomBodyEl);zoomOverlay.classList.add("active");
   // Render math in zoom overlay
@@ -601,13 +605,59 @@ buildDraftCanvas(zoomBodyEl);zoomOverlay.classList.add("active");
   }
 }
 zoomSubmitBtn.addEventListener("click",()=>{const p=puzzles[zoomIdx];let ok=false;
-if(p.type==="fill"){ok=zFillInps.every(({inp,answer})=>inp.value.trim().toLowerCase()===String(answer).toLowerCase());if(ok)zFillInps.forEach(({inp})=>inp.classList.add("correct"));else zFillInps.forEach(({inp,answer})=>{inp.classList.remove("correct");if(inp.value.trim().toLowerCase()!==String(answer).toLowerCase())inp.classList.add("wrong");});}
+if(p.type==="fill"){const _fuzzy=D.settings&&D.settings.fuzzyMatch;ok=zFillInps.every(({inp,answer})=>fuzzyMatch(inp.value,String(answer),_fuzzy));if(ok)zFillInps.forEach(({inp})=>inp.classList.add("correct"));else zFillInps.forEach(({inp,answer})=>{inp.classList.remove("correct");if(inp.value.trim().toLowerCase()!==String(answer).toLowerCase())inp.classList.add("wrong");});}
 else if(p.type==="match"){ok=zMatchSels.every(({sel,answer})=>sel.value===answer);if(ok)zMatchSels.forEach(({sel})=>sel.classList.add("correct"));}
 else if(p.type==="truefalse"){ok=zTFState.every(s=>s.selected!==null&&s.selected===s.answer);}
 else if(p.type==="order"){ok=zOrderInps.every(({inp,answer})=>inp.value.trim()===String(answer));if(ok)zOrderInps.forEach(({inp})=>inp.classList.add("correct"));else zOrderInps.forEach(({inp,answer})=>{if(inp.value.trim()!==String(answer))inp.classList.add("wrong");});}
 else if(p.type==="multichoice"){ok=zMCState.every(s=>s.selected!==null&&s.selected===s.answer);}
-else if(p.type==="wordguess"){ok=zWordInps.every(({inp,answer})=>inp.value.trim().toLowerCase()===String(answer).toLowerCase());if(ok)zWordInps.forEach(({inp})=>inp.classList.add("correct"));else zWordInps.forEach(({inp,answer})=>{if(inp.value.trim().toLowerCase()!==String(answer).toLowerCase())inp.classList.add("wrong");});}
-if(ok){setTimeout(()=>{zoomOverlay.classList.remove("active");zoomActive=false;openTile(zoomIdx);},400);}else{wrongAttempts++;zoomOverlay.classList.remove("active");zoomActive=false;errorOverlay.classList.add("visible");playSound(errorSound);}});
+else if(p.type==="wordguess"){const _fuzzy2=D.settings&&D.settings.fuzzyMatch;ok=zWordInps.every(({inp,answer})=>fuzzyMatch(inp.value,String(answer),_fuzzy2));if(ok)zWordInps.forEach(({inp})=>inp.classList.add("correct"));else zWordInps.forEach(({inp,answer})=>{if(inp.value.trim().toLowerCase()!==String(answer).toLowerCase())inp.classList.add("wrong");});}
+function fuzzyMatch(a, b, allowTypo) {
+  var s1 = a.trim().toLowerCase();
+  var s2 = b.trim().toLowerCase();
+  if (s1 === s2) return true;
+  if (!allowTypo) return false;
+  // Levenshtein distance ≤ 1
+  if (Math.abs(s1.length - s2.length) > 1) return false;
+  var dist = 0, i = 0, j = 0;
+  while (i < s1.length && j < s2.length) {
+    if (s1[i] !== s2[j]) {
+      dist++;
+      if (dist > 1) return false;
+      if (s1.length > s2.length) i++;
+      else if (s1.length < s2.length) j++;
+      else { i++; j++; }
+    } else { i++; j++; }
+  }
+  return (dist + (s1.length - i) + (s2.length - j)) <= 1;
+}
+if(ok){setTimeout(()=>{zoomOverlay.classList.remove("active");zoomActive=false;openTile(zoomIdx);},400);}else{wrongAttempts++;
+    var errEl=document.getElementById("errorCount");
+    if(errEl){errEl.textContent=wrongAttempts;var ep=document.getElementById("errorPill");if(ep)ep.style.display="flex";}
+    // Check maxErrors limit
+    var maxErr=(window.__gameData__&&window.__gameData__.settings&&window.__gameData__.settings.maxErrors)||0;
+    if(maxErr>0 && wrongAttempts>=maxErr){
+      setTimeout(function(){
+        zoomOverlay.classList.remove("active"); zoomActive=false;
+        // Show game over - reuse error overlay with custom message
+        var errTitle=document.getElementById("errorTitle");
+        var errText=document.getElementById("errorText");
+        if(errTitle) errTitle.textContent="Игра окончена!";
+        if(errText) errText.textContent="Допущено "+wrongAttempts+" ошибок. Попробуй ещё раз!";
+        errorOverlay.classList.add("visible");
+        // Override click to restart
+        errorOverlay.onclick=function(){
+          errorOverlay.classList.remove("visible");
+          // Reset game
+          wrongAttempts=0;openedTiles=0;
+          var ep3=document.getElementById("errorPill");if(ep3)ep3.style.display="none";
+          var ec3=document.getElementById("errorCount");if(ec3)ec3.textContent=0;
+          createTiles();
+          // Restore normal click
+          errorOverlay.onclick=function(){errorOverlay.classList.remove("visible");};
+        };
+      },500);
+      return;
+    };zoomOverlay.classList.remove("active");zoomActive=false;errorOverlay.classList.add("visible");playSound(errorSound);}});
 function createTiles(){
   tilesGrid.innerHTML="";
   puzzles.forEach((_,i)=>tilesGrid.appendChild(createTile(i)));
@@ -629,6 +679,7 @@ function showPicture(){pictureOverlay.classList.add("visible");playSound(winSoun
 pictureDoneBtn.addEventListener("click",()=>{pictureOverlay.classList.remove("visible");showFinal();});
 errorOverlay.addEventListener("click",()=>{errorOverlay.classList.remove("visible");});
 function showFinal(){finalOverlay.classList.add("visible");spawnConfetti();}
+wrongAttempts=0;var ep2=document.getElementById("errorPill");if(ep2)ep2.style.display="none";var ec2=document.getElementById("errorCount");if(ec2)ec2.textContent=0;
 playAgainButton.addEventListener("click",()=>{finalOverlay.classList.remove("visible");pictureOverlay.classList.remove("visible");errorOverlay.classList.remove("visible");openedTiles=0;wrongAttempts=0;updateProgress();createTiles();});
 soundToggleBtn.addEventListener("click",()=>{soundEnabled=!soundEnabled;soundIconEl.textContent=soundEnabled?"🔊":"🔈";});
 startButton.addEventListener("click",()=>{startScreen.style.display="none";gameScreen.style.display="flex";gameScreen.style.height="100%";openedTiles=0;wrongAttempts=0;updateProgress();createTiles();});
