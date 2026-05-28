@@ -7,7 +7,7 @@
   (function(){
     // Проверка домена (только для опубликованной игры, не iframe)
     if(window === window.top) {
-      var _allowed=['nastyaiv3100-cyber.github.io','localhost','127.0.0.1'];
+      var _allowed=['nastyaiv3100-cyber.github.io','localhost','127.0.0.1','genially.com','app.genially.com','view.genially.com'];
       var _host=location.hostname;
       var _ok=_allowed.some(function(d){return _host===d||_host.endsWith('.'+d);});
       if(!_ok){
