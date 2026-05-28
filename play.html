@@ -3,54 +3,34 @@
 <head>
 
   <script>
-  // ██████████████████████████████████████████████████
-  // ЗАЩИТА © Урок на Play — t.me/lesson_play
-  // ██████████████████████████████████████████████████
+  // © Урок на Play — t.me/lesson_play
   (function(){
-    // --- 1. БЛОКИРОВКА DEVTOOLS ---
-    var _dt=false,_dtTimer;
-    function _freeze(){document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#000;color:#fff;font-size:18px;font-family:sans-serif">⚠️ Доступ закрыт</div>';while(true){}}
-    // Детект по размеру окна
-    function _checkDT(){
-      if(window.outerWidth-window.innerWidth>160||window.outerHeight-window.innerHeight>160){
-        if(!_dt){_dt=true;_freeze();}
+    // Проверка домена (только для опубликованной игры, не iframe)
+    if(window === window.top) {
+      var _allowed=['nastyaiv3100-cyber.github.io','localhost','127.0.0.1'];
+      var _host=location.hostname;
+      var _ok=_allowed.some(function(d){return _host===d||_host.endsWith('.'+d);});
+      if(!_ok){
+        document.addEventListener('DOMContentLoaded',function(){
+          document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0B1E4F;color:#f6c35b;font-family:sans-serif;text-align:center;padding:20px"><div><div style="font-size:48px;margin-bottom:16px">🔒</div><div style="font-size:16px;margin-bottom:8px">© Урок на Play</div><div style="font-size:12px;opacity:.6">Игра доступна только на оригинальном домене</div><div style="margin-top:16px"><a href="https://t.me/lesson_play" style="color:#57d6ff">t.me/lesson_play</a></div></div></div>';
+        });
       }
     }
-    setInterval(_checkDT,500);
-    // Детект debugger
-    setInterval(function(){var s=new Date();debugger;if(new Date()-s>100){_freeze();}},1000);
-    // Блок клавиш
-    document.addEventListener('keydown',function(e){
-      if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))||(e.ctrlKey&&e.key==='U')||(e.ctrlKey&&e.key==='S')){
-        e.preventDefault();e.stopPropagation();
-        document.body.style.opacity='0';
-        setTimeout(function(){location.reload();},300);
-        return false;
-      }
-    },true);
-    // Блок правой кнопки
-    document.addEventListener('contextmenu',function(e){e.preventDefault();return false;});
 
-    // --- 2. ПРОВЕРКА ДОМЕНА ---
-    var _allowed=['nastyaiv3100-cyber.github.io','localhost','127.0.0.1'];
-    var _host=location.hostname;
-    var _ok=_allowed.some(function(d){return _host===d||_host.endsWith('.'+d);});
-    if(!_ok){
-      // Вне разрешённых доменов — бесконечная перезагрузка
-      document.addEventListener('DOMContentLoaded',function(){
-        document.body.innerHTML='';
-        var _loop=function(){setTimeout(function(){location.reload();_loop();},1500);};
-        _loop();
-      });
-    }
-
-    // --- 3. КЛЮЧ ЛИЦЕНЗИИ — вшит в механику ---
-    // Контрольная сумма: если изменить — игра не запустится
-    var _key=[85,114,111,107,110,97,80,108,97,121]; // "UroknaPlay"
+    // Ключ лицензии
+    var _key=[85,114,111,107,110,97,80,108,97,121];
     var _check=_key.reduce(function(a,b){return a^b;},0);
-    if(_check!==27){_freeze();} // если кто-то изменит массив — freeze
-    window.__LICENSE__=String.fromCharCode.apply(null,_key);
+    window.__LICENSE__= _check===27 ? String.fromCharCode.apply(null,_key) : null;
 
+    // Блок клавиш только вне iframe (не мешать редактору)
+    if(window === window.top) {
+      document.addEventListener('keydown',function(e){
+        if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))){
+          e.preventDefault(); return false;
+        }
+      },true);
+      document.addEventListener('contextmenu',function(e){e.preventDefault();return false;});
+    }
   })();
   </script>
   <meta charset="UTF-8"/>
@@ -311,6 +291,11 @@
 // ══════════════════════════════════════════
 
 async function loadGameData() {
+  // If data already injected by editor preview (buildSrcdoc) - skip URL parsing
+  if (window.__PRELOADED_DATA__) {
+    return window.__PRELOADED_DATA__;
+  }
+
   // Проверка лицензии — часть механики
   if (!window.__LICENSE__ || window.__LICENSE__ !== 'UroknaPlay') {
     showError('© Урок на Play — t.me/lesson_play');
