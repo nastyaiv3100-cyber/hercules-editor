@@ -5,25 +5,26 @@
   <script>
   // © Урок на Play — t.me/lesson_play
   (function(){
-    // Проверка домена (только для опубликованной игры, не iframe)
-    if(window === window.top) {
-      var _allowed=['nastyaiv3100-cyber.github.io','localhost','127.0.0.1','genially.com','app.genially.com','view.genially.com'];
-      var _host=location.hostname;
-      var _ok=_allowed.some(function(d){return _host===d||_host.endsWith('.'+d);});
-      if(!_ok){
-        document.addEventListener('DOMContentLoaded',function(){
-          document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0B1E4F;color:#f6c35b;font-family:sans-serif;text-align:center;padding:20px"><div><div style="font-size:48px;margin-bottom:16px">🔒</div><div style="font-size:16px;margin-bottom:8px">© Урок на Play</div><div style="font-size:12px;opacity:.6">Игра доступна только на оригинальном домене</div><div style="margin-top:16px"><a href="https://t.me/lesson_play" style="color:#57d6ff">t.me/lesson_play</a></div></div></div>';
-        });
-      }
-    }
-
-    // Ключ лицензии
+    // Ключ лицензии — устанавливаем ПЕРВЫМ, до любых проверок
     var _key=[85,114,111,107,110,97,80,108,97,121];
     var _check=_key.reduce(function(a,b){return a^b;},0);
     window.__LICENSE__= _check===27 ? String.fromCharCode.apply(null,_key) : null;
 
-    // Блок клавиш только вне iframe (не мешать редактору)
-    if(window === window.top) {
+    // Проверка домена — только когда открыт напрямую (не в iframe)
+    // Используем try/catch на случай cross-origin ограничений
+    var _isTop = false;
+    try { _isTop = (window === window.top); } catch(e) { _isTop = false; }
+
+    if(_isTop) {
+      var _allowed=['nastyaiv3100-cyber.github.io','localhost','127.0.0.1'];
+      var _host=location.hostname;
+      var _ok=_allowed.some(function(d){return _host===d||_host.endsWith('.'+d);});
+      if(!_ok){
+        document.addEventListener('DOMContentLoaded',function(){
+          document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0B1E4F;color:#f6c35b;font-family:sans-serif;text-align:center;padding:20px"><div><div style="font-size:48px;margin-bottom:16px">🔒</div><div style="font-size:16px;margin-bottom:8px">© Урок на Play</div><div style="font-size:12px;opacity:.6">Игра доступна только с разрешённых платформ</div><div style="margin-top:16px"><a href=\"https://t.me/lesson_play\" style=\"color:#57d6ff\">t.me/lesson_play</a></div></div></div>';
+        });
+      }
+      // Блок DevTools только при прямом открытии
       document.addEventListener('keydown',function(e){
         if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))){
           e.preventDefault(); return false;
