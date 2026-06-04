@@ -491,6 +491,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     +'.start-card{background:var(--card-bg) !important;border:var(--border-width) solid var(--border-color) !important;border-radius:var(--border-radius) !important;box-shadow:0 0 0 1px var(--glow-color),0 0 var(--glow-size) var(--glow-color),0 24px 80px rgba(0,0,0,0.6) !important;}'
     +'.game-wrapper{border:var(--border-width) solid var(--border-color) !important;border-radius:var(--border-radius) !important;box-shadow:0 0 0 1px var(--glow-color),0 0 var(--glow-size) var(--glow-color),0 24px 80px rgba(0,0,0,0.6) !important;}'
     +'.zoom-card,.overlay-card,.final-content,.picture-content{border:var(--border-width) solid var(--border-color) !important;border-radius:var(--border-radius) !important;}'
+    +(D.style&&D.style.zoomBg ? '.zoom-card{background:url("'+D.style.zoomBg+'") center/cover !important}' : '')
     +'.top-bar{border-bottom:var(--border-width) solid var(--border-color) !important;}'
     // Derive tile colors from bgDark/bgMid with opacity
     +'body{--tile-bg:'+hexToRgbaStyle(c.bgDark,0.88)+';--tile-bg-alt:'+hexToRgbaStyle(c.bgMid,0.85)+';--tile-bg-dark:'+hexToRgbaStyle(c.bgDark,0.92)+'}'
