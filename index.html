@@ -501,7 +501,7 @@ let pvTimer = null, pvDevice = 'desktop';
 // ═══════════════════════════════════
 // LIVE PREVIEW — debounced 600ms
 // ═══════════════════════════════════
-function _f1000(msg, onOk) {
+function showConfirm(msg, onOk) {
   var modal = document.getElementById('confirmModal');
   var msgEl = document.getElementById('confirmMsg');
   var okBtn = document.getElementById('confirmOk');
@@ -516,30 +516,30 @@ function _f1000(msg, onOk) {
   });
 }
 
-function _f1001(msg, duration=2200) {
-  let el = document.getElementById('_f1001');
-  if (!el) { el = document.createElement('div'); el.id = '_f1001'; el.className = '_f1001'; document.body.appendChild(el); }
+function _f1000(msg, duration=2200) {
+  let el = document.getElementById('_f1000');
+  if (!el) { el = document.createElement('div'); el.id = '_f1000'; el.className = '_f1000'; document.body.appendChild(el); }
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(el._timer);
   el._timer = setTimeout(() => el.classList.remove('show'), duration);
 }
 
-function _f1002() {
+function _f1001() {
   clearTimeout(pvTimer);
   const dot = document.getElementById('liveDot');
   if (dot) { dot.style.background = '#f6c35b'; dot.style.animation = 'none'; }
-  pvTimer = setTimeout(() => _f1003(), 600);
+  pvTimer = setTimeout(() => _f1002(), 600);
 }
 
-function _f1003() {
+function _f1002() {
   const frame = document.getElementById('previewFrame');
   if (!frame) return;
   const overlay = document.getElementById('pvOverlay');
   const dot = document.getElementById('liveDot');
   if (overlay) overlay.classList.remove('hidden');
   try {
-    const html = _f1045();
+    const html = _f1024();
     frame.onload = () => {
       if (overlay) overlay.classList.add('hidden');
       if (dot) { dot.style.background = '#7edb8a'; dot.style.animation = ''; }
@@ -555,7 +555,7 @@ function _f1003() {
   }
 }
 
-function _f1004() { _f1003(); _f1001('↺ Обновлено'); }
+function forceReload() { _f1002(); _f1000('↺ Обновлено'); }
 
 const DEVICES = {
   desktop:{w:null, h:null, label:'Десктоп'},
@@ -563,16 +563,16 @@ const DEVICES = {
   mobile: {w:390,  h:560,  label:'Мобильный'}
 };
 
-function _f1005(d) {
+function setDevice(d) {
   pvDevice = d;
   ['desktop','tablet','mobile'].forEach(n=>{
     const b=document.getElementById('dt-'+n);
     if(b) b.classList.toggle('active', n===d);
   });
-  _f1006();
+  _f1003();
 }
 
-function _f1006() {
+function _f1003() {
   const wrap = document.getElementById('pvWrap');
   const frame = document.getElementById('previewFrame');
   const vp = document.getElementById('pvViewport');
@@ -591,22 +591,22 @@ function _f1006() {
     frame.style.width = pw+'px';
     frame.style.height = ph+'px';
   }
-  _f1003();
+  _f1002();
 }
 
-function _f1007() {
+function openFullscreen() {
   const ov = document.getElementById('fsOverlay');
   const fr = document.getElementById('fsFrame');
   ov.classList.add('open');
   try {
-    const html = _f1045();
+    const html = _f1024();
     if (fr._blobUrl) { URL.revokeObjectURL(fr._blobUrl); fr._blobUrl = null; }
     const blob = new Blob([html], {type: 'text/html'});
     fr._blobUrl = URL.createObjectURL(blob);
     fr.src = fr._blobUrl;
   } catch(e) { console.error('Fullscreen error:', e); }
 }
-function _f1008() {
+function closeFullscreen() {
   document.getElementById('fsOverlay').classList.remove('open');
 }
 
@@ -634,59 +634,59 @@ function _f1008() {
     const pvPx = Math.max(200, total-sidebar-edPx-8);
     shell.style.gridTemplateColumns = `190px ${edPx}px 4px ${pvPx}px`;
     startX = e.clientX;
-    if(pvDevice==='desktop') _f1006();
+    if(pvDevice==='desktop') _f1003();
   });
   document.addEventListener('mouseup',()=>{
     if(!dragging) return;
     dragging=false; r.classList.remove('dragging');
     document.body.style.userSelect='';
     document.body.style.cursor='';
-    if(pvDevice==='desktop') _f1006();
+    if(pvDevice==='desktop') _f1003();
   });
 })();
 
 // ═══════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════
-function _f1009(s) {
+function showSec(s) {
   curSec = s;
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
   const n = document.getElementById('ns-'+s);
   if(n) n.classList.add('active');
-  _f100f();
-  // export section refreshes automatically via _f103c()
+  _f1008();
+  // export section refreshes automatically via _f101c()
 }
 
-function _f100a() {
+function _f1004() {
   const icons={truefalse:'✔',match:'↔',multichoice:'☑',order:'⇅',fill:'✏',wordguess:'✍',textanswer:'💬',sentence:'🔤'};
   document.getElementById('taskNav').innerHTML = G.puzzles.map((p,i)=>
-    `<div class="nav-item" onclick="_f1009('tasks');setTimeout(()=>_f100b(${i}),60)" style="font-size:10px;padding:4px 9px">
+    `<div class="nav-item" onclick="showSec('tasks');setTimeout(()=>openAt(${i}),60)" style="font-size:10px;padding:4px 9px">
       <span style="color:#353850">${icons[p.type]||'?'}</span> Задание ${i+1}
     </div>`).join('');
   document.getElementById('tcBadge').textContent = G.puzzles.length+' заданий';
 }
 
-function _f100b(i) {
+function openAt(i) {
   openTaskIdx = i;
-  _f100f();
+  _f1008();
   setTimeout(()=>{ const el=document.getElementById('tc-'+i); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },80);
 }
 
 // ═══════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════
-function _f100c(s){return String(s||'').replace(/[&<>'\"]/g,function(c){return{'\x26':'\x26amp;','\x3c':'\x26lt;','\x3e':'\x26gt;','\"':'\x26quot;',"'":'\x26#39;'}[c];});}
+function _f1005(s){return String(s||'').replace(/[&<>'\"]/g,function(c){return{'\x26':'\x26amp;','\x3c':'\x26lt;','\x3e':'\x26gt;','\"':'\x26quot;',"'":'\x26#39;'}[c];});}
 function f(label,key,val,type='text',extra=''){
-  return `<div class="fr"><div class="fl">${label}</div><input type="${type}" class="gf" data-gk="${key}" value="${_f100c(val)}" ${extra}/></div>`;
+  return `<div class="fr"><div class="fl">${label}</div><input type="${type}" class="gf" data-gk="${key}" value="${_f1005(val)}" ${extra}/></div>`;
 }
 function t(label,key,val){
-  return `<div class="fr"><div class="fl">${label}</div><textarea class="tai gf" data-gk="${key}">${_f100c(val)}</textarea></div>`;
+  return `<div class="fr"><div class="fl">${label}</div><textarea class="tai gf" data-gk="${key}">${_f1005(val)}</textarea></div>`;
 }
 
 // ═══════════════════════════════════
 // RENDER EDITOR
 // ═══════════════════════════════════
-function _f100d(obj, path, val) {
+function _f1006(obj, path, val) {
   const keys = path.split('.');
   let cur = obj;
   for (let i = 0; i < keys.length - 1; i++) {
@@ -699,33 +699,33 @@ function _f100d(obj, path, val) {
     : val;
 }
 
-function _f100e() {
+function _f1007() {
   // .gf fields with data-gk get two-way binding
   document.querySelectorAll('.gf[data-gk]').forEach(el => {
     if (el._bound) return;
     el._bound = true;
-    const upd = function() { _f100d(G, this.dataset.gk, this.value); _f1002(); };
+    const upd = function() { _f1006(G, this.dataset.gk, this.value); _f1001(); };
     el.addEventListener('input', upd);
     el.addEventListener('change', upd);
   });
 }
 
-function _f100f() {
-  const fns={start:_f1010,game:_f1011,tasks:_f1019,overlays:_f1016,theme:_f102d,images:_f1017,langs:_f1033,export:_f103c};
-  document.getElementById('editorContent').innerHTML = (fns[curSec]||_f1010)();
-  _f100a();
-  _f100e();
+function _f1008() {
+  const fns={start:_f1009,game:_f100a,tasks:_f100e,overlays:_f100b,theme:_f1016,images:_f100c,langs:_f101a,export:_f101c};
+  document.getElementById('editorContent').innerHTML = (fns[curSec]||_f1009)();
+  _f1004();
+  _f1007();
 }
 
 // ── SECTIONS ──
-function _f1010(){const s=G.start;return`<div class="sec-title">🚀 Стартовый экран</div>
+function _f1009(){const s=G.start;return`<div class="sec-title">🚀 Стартовый экран</div>
 <div class="panel"><div class="phdr">Карточка</div><div class="pbody">
 ${f('Бейдж','start.badge',s.badge)}${f('Иконка','start.icon',s.icon)}${f('Заголовок','start.title',s.title)}
 ${f('Подзаголовок','start.subtitle',s.subtitle)}${t('Описание','start.description',s.description)}
 ${f('Кнопка','start.btnText',s.btnText)}${f('Подвал','start.footer',s.footer)}
 </div></div>`;}
 
-function _f1011(){const g=G.game,ok=g.cols*g.rows===G.puzzles.length;return`<div class="sec-title">🎮 Игровой экран</div>
+function _f100a(){const g=G.game,ok=g.cols*g.rows===G.puzzles.length;return`<div class="sec-title">🎮 Игровой экран</div>
 <div class="panel"><div class="phdr">Шапка</div><div class="pbody">
 ${f('Иконка','game.topIcon',g.topIcon)}${f('Заголовок','game.topTitle',g.topTitle)}
 ${f('Подзаголовок','game.topSub',g.topSub)}${f('Иконка прогресса','game.progressIcon',g.progressIcon)}
@@ -736,42 +736,42 @@ ${f('Столбцов','game.cols',g.cols,'number','min="1" max="8" style="width
 ${f('Строк','game.rows',g.rows,'number','min="1" max="8" style="width:70px"')}
 </div></div>
   <div class="panel"><div class="phdr">⚙️ Настройки игры</div><div class="pbody">
-    ${_f1015()}
+    ${rGameSettings()}
   </div></div>
   <div class="panel"><div class="phdr">✨ Летающие объекты</div><div class="pbody">
-    ${_f1013()}
+    ${rDecoEditor()}
   </div></div>
   <div class="panel"><div class="phdr">🔊 Звуки</div><div class="pbody">
-    ${_f1012()}
+    ${rSounds()}
   </div></div>
   <div class="panel"><div class="phdr">Сетка пазла</div><div class="pbody">
     <div class="note ${ok?'note-green':'note-gold'}">${ok?'✅':'⚠️'} cols×rows = ${g.cols}×${g.rows} = <b>${g.cols*g.rows}</b>. Заданий: <b>${G.puzzles.length}</b>. ${ok?'Совпадает!':'Не совпадает!'}</div>
 </div></div>`;}
 
-function _f1012() {
+function rSounds() {
   const snd = G.sounds || {enabled:true, flip:0.25, error:0.4, win:0.3};
   return '<div class="fr"><div class="fl">Звук включён</div>'
     + '<div style="display:flex;gap:8px">'
-    + '<button class="btn ' + (snd.enabled!==false?'btn-green':'btn-ghost') + ' btn-sm" onclick="G.sounds=G.sounds||{};G.sounds.enabled=true;_f1002();_f100f()">'
+    + '<button class="btn ' + (snd.enabled!==false?'btn-green':'btn-ghost') + ' btn-sm" onclick="G.sounds=G.sounds||{};G.sounds.enabled=true;_f1001();_f1008()">'
     + (snd.enabled!==false ? '🔊 Включён' : '🔇 Включить') + '</button>'
-    + '<button class="btn ' + (snd.enabled===false?'btn-danger':'btn-ghost') + ' btn-sm" onclick="G.sounds=G.sounds||{};G.sounds.enabled=false;_f1002();_f100f()">'
+    + '<button class="btn ' + (snd.enabled===false?'btn-danger':'btn-ghost') + ' btn-sm" onclick="G.sounds=G.sounds||{};G.sounds.enabled=false;_f1001();_f1008()">'
     + (snd.enabled===false ? '🔇 Выключен' : '🔊 Выключить') + '</button>'
     + '</div></div>'
     + (snd.enabled!==false ? (
         '<div class="fr"><div class="fl">Переворот тайла</div><div style="display:flex;align-items:center;gap:8px">'
-      + '<input type="range" min="0" max="1" step="0.05" value="' + (snd.flip||0.25) + '" oninput="if(!G.sounds)G.sounds={};G.sounds.flip=parseFloat(this.value);this.nextElementSibling.textContent=Math.round(this.value*100)+'%';_f1002()" style="flex:1"/>'
+      + '<input type="range" min="0" max="1" step="0.05" value="' + (snd.flip||0.25) + '" oninput="if(!G.sounds)G.sounds={};G.sounds.flip=parseFloat(this.value);this.nextElementSibling.textContent=Math.round(this.value*100)+'%';_f1001()" style="flex:1"/>'
       + '<span style="font-size:10px;color:#f6c35b;min-width:30px">' + Math.round((snd.flip||0.25)*100) + '%</span></div></div>'
       + '<div class="fr"><div class="fl">Ошибка</div><div style="display:flex;align-items:center;gap:8px">'
-      + '<input type="range" min="0" max="1" step="0.05" value="' + (snd.error||0.4) + '" oninput="if(!G.sounds)G.sounds={};G.sounds.error=parseFloat(this.value);this.nextElementSibling.textContent=Math.round(this.value*100)+'%';_f1002()" style="flex:1"/>'
+      + '<input type="range" min="0" max="1" step="0.05" value="' + (snd.error||0.4) + '" oninput="if(!G.sounds)G.sounds={};G.sounds.error=parseFloat(this.value);this.nextElementSibling.textContent=Math.round(this.value*100)+'%';_f1001()" style="flex:1"/>'
       + '<span style="font-size:10px;color:#f6c35b;min-width:30px">' + Math.round((snd.error||0.4)*100) + '%</span></div></div>'
       + '<div class="fr"><div class="fl">Победа</div><div style="display:flex;align-items:center;gap:8px">'
-      + '<input type="range" min="0" max="1" step="0.05" value="' + (snd.win||0.3) + '" oninput="if(!G.sounds)G.sounds={};G.sounds.win=parseFloat(this.value);this.nextElementSibling.textContent=Math.round(this.value*100)+'%';_f1002()" style="flex:1"/>'
+      + '<input type="range" min="0" max="1" step="0.05" value="' + (snd.win||0.3) + '" oninput="if(!G.sounds)G.sounds={};G.sounds.win=parseFloat(this.value);this.nextElementSibling.textContent=Math.round(this.value*100)+'%';_f1001()" style="flex:1"/>'
       + '<span style="font-size:10px;color:#f6c35b;min-width:30px">' + Math.round((snd.win||0.3)*100) + '%</span></div></div>'
     ) : '');
 }
 
 
-function _f1013() {
+function rDecoEditor() {
   if (!G.game) G.game = {};
   const emojis = G.game.decoEmojis || ["🏺","⚔️","🌿","🏛️","🦅","⭐","🌊","🪶","🌙","✨"];
   const presets = {
@@ -786,7 +786,7 @@ function _f1013() {
   const presetKeys = Object.keys(presets);
   let presetBtns = '';
   presetKeys.forEach(function(name, pi) {
-    presetBtns += '<button class="btn btn-ghost btn-sm" onclick="_f1014(' + pi + ')">' + name + '</button>';
+    presetBtns += '<button class="btn btn-ghost btn-sm" onclick="applyDecoPreset(' + pi + ')">' + name + '</button>';
   });
   // Store presets globally for onclick
   window.__DECO_PRESETS__ = presets;
@@ -794,7 +794,7 @@ function _f1013() {
   let emojiFields = '';
   emojis.forEach(function(em, i) {
     emojiFields += '<input type="text" value="' + em + '" maxlength="4" '
-      + 'oninput="if(!G.game.decoEmojis)G.game.decoEmojis=[];G.game.decoEmojis[' + i + ']=this.value;_f1002()" '
+      + 'oninput="if(!G.game.decoEmojis)G.game.decoEmojis=[];G.game.decoEmojis[' + i + ']=this.value;_f1001()" '
       + 'style="width:42px;text-align:center;font-size:18px;padding:5px 4px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--cream-dim);cursor:text"/>';
   });
 
@@ -803,27 +803,27 @@ function _f1013() {
     + '<div style="display:flex;flex-wrap:wrap;gap:5px">' + emojiFields + '</div>';
 }
 
-function _f1014(pi) {
+function applyDecoPreset(pi) {
   const presets = window.__DECO_PRESETS__;
   if (!presets) return;
   const vals = Object.values(presets)[pi];
   if (!vals) return;
   if (!G.game) G.game = {};
   G.game.decoEmojis = vals.slice();
-  _f100f();
-  clearTimeout(pvTimer); _f1003();
+  _f1008();
+  clearTimeout(pvTimer); _f1002();
 }
 
-function _f1015() {
+function rGameSettings() {
   const s = G.settings || {shuffleOptions:true, fuzzyMatch:false};
   return '<div class="fr"><div class="fl">Перемешивать варианты</div>'
     + '<div style="display:flex;gap:8px">'
-    + '<button class="btn ' + (s.shuffleOptions!==false?'btn-green':'btn-ghost') + ' btn-sm" onclick="if(!G.settings)G.settings={};G.settings.shuffleOptions=true;_f1002();_f100f()">🔀 Да</button>'
-    + '<button class="btn ' + (s.shuffleOptions===false?'btn-danger':'btn-ghost') + ' btn-sm" onclick="if(!G.settings)G.settings={};G.settings.shuffleOptions=false;_f1002();_f100f()">— Нет</button>'
+    + '<button class="btn ' + (s.shuffleOptions!==false?'btn-green':'btn-ghost') + ' btn-sm" onclick="if(!G.settings)G.settings={};G.settings.shuffleOptions=true;_f1001();_f1008()">🔀 Да</button>'
+    + '<button class="btn ' + (s.shuffleOptions===false?'btn-danger':'btn-ghost') + ' btn-sm" onclick="if(!G.settings)G.settings={};G.settings.shuffleOptions=false;_f1001();_f1008()">— Нет</button>'
     + '</div></div>'
     + '<div class="fr"><div class="fl">Максимум ошибок</div>'
     + '<div style="display:flex;align-items:center;gap:8px">'
-    + '<select onchange="if(!G.settings)G.settings={};G.settings.maxErrors=parseInt(this.value);_f1002()" style="width:140px">'
+    + '<select onchange="if(!G.settings)G.settings={};G.settings.maxErrors=parseInt(this.value);_f1001()" style="width:140px">'
     + '<option value="0"' + ((!s.maxErrors||s.maxErrors===0)?' selected':'') + '>∞ Без ограничений</option>'
     + '<option value="1"' + (s.maxErrors===1?' selected':'') + '>1 ошибка</option>'
     + '<option value="2"' + (s.maxErrors===2?' selected':'') + '>2 ошибки</option>'
@@ -835,12 +835,12 @@ function _f1015() {
     + '</div></div>'
     + '<div class="fr"><div class="fl">Допускать опечатки (±1 символ)</div>'
     + '<div style="display:flex;gap:8px">'
-    + '<button class="btn ' + (s.fuzzyMatch?'btn-green':'btn-ghost') + ' btn-sm" onclick="if(!G.settings)G.settings={};G.settings.fuzzyMatch=true;_f1002();_f100f()">✅ Да</button>'
-    + '<button class="btn ' + (!s.fuzzyMatch?'btn-cyan':'btn-ghost') + ' btn-sm" onclick="if(!G.settings)G.settings={};G.settings.fuzzyMatch=false;_f1002();_f100f()">— Нет</button>'
+    + '<button class="btn ' + (s.fuzzyMatch?'btn-green':'btn-ghost') + ' btn-sm" onclick="if(!G.settings)G.settings={};G.settings.fuzzyMatch=true;_f1001();_f1008()">✅ Да</button>'
+    + '<button class="btn ' + (!s.fuzzyMatch?'btn-cyan':'btn-ghost') + ' btn-sm" onclick="if(!G.settings)G.settings={};G.settings.fuzzyMatch=false;_f1001();_f1008()">— Нет</button>'
     + '</div></div>';
 }
 
-function _f1016(){const o=G.overlays;return`<div class="sec-title">💬 Ошибки, открытка и финал</div>
+function _f100b(){const o=G.overlays;return`<div class="sec-title">💬 Ошибки, открытка и финал</div>
 <div class="panel"><div class="phdr">❌ Ошибка</div><div class="pbody">
 ${f('Иконка','overlays.errorIcon',o.errorIcon)}${f('Заголовок','overlays.errorTitle',o.errorTitle)}${t('Текст','overlays.errorText',o.errorText)}
 </div></div>
@@ -852,21 +852,21 @@ ${f('Эмблема','overlays.finalEmblem',o.finalEmblem)}${f('Заголово
 ${t('Текст','overlays.finalText',o.finalText)}${f('Кнопка снова','overlays.playAgainText',o.playAgainText)}
 </div></div>`;}
 
-function _f1017(){
+function _f100c(){
   const g=G.game, s=G.start;
 
 
 
-  function _f1018(label, key, url) {
+  function _f100d(label, key, url) {
     const safeUrl = (url && !url.startsWith('data:')) ? url : '';
     const imgId = 'prev_' + key.replace(/\./g,'_');
     const prevStyle = 'width:100%;max-height:80px;object-fit:cover;border-radius:5px;margin-top:6px;border:1px solid #252836;display:' + (safeUrl ? 'block' : 'none');
     return '<div style="margin-bottom:16px">'
       + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:6px">' + label + '</div>'
-      + '<input type="text" class="gf" data-gk="' + key + '" value="' + _f100c(safeUrl) + '" placeholder="https://postimg.cc/..." style="width:100%"'
+      + '<input type="text" class="gf" data-gk="' + key + '" value="' + _f1005(safeUrl) + '" placeholder="https://postimg.cc/..." style="width:100%"'
       + ' oninput="var p=document.getElementById(\'' + imgId + '\');if(p){p.src=this.value;p.style.display=this.value?\'block\':\'none\';}"'
       + '/>'
-      + '<img id="' + imgId + '" src="' + _f100c(safeUrl) + '" style="' + prevStyle + '" onerror="this.style.display=\'none\'"/>'
+      + '<img id="' + imgId + '" src="' + _f1005(safeUrl) + '" style="' + prevStyle + '" onerror="this.style.display=\'none\'"/>'
       + '</div>';
   }
 
@@ -875,9 +875,9 @@ function _f1017(){
     + '<div class="note note-green" style="margin-bottom:14px">'
     + '✅ Загрузите картинку на <a href="https://postimg.cc" target="_blank" style="color:#57d6ff">postimg.cc</a> (бесплатно, без регистрации) → скопируйте <b>Direct link</b> → вставьте в поле ниже.'
     + '</div>'
-    + _f1018('🌄 Фон (старт + игра)', 'start.bgUrl', s.bgUrl)
-    + _f1018('🧩 Фон пазла (под тайлами)', 'game.puzzleImgUrl', g.puzzleImgUrl)
-    + _f1018('🏆 Открытка (финал)', 'game.revealImgUrl', g.revealImgUrl)
+    + _f100d('🌄 Фон (старт + игра)', 'start.bgUrl', s.bgUrl)
+    + _f100d('🧩 Фон пазла (под тайлами)', 'game.puzzleImgUrl', g.puzzleImgUrl)
+    + _f100d('🏆 Открытка (финал)', 'game.revealImgUrl', g.revealImgUrl)
     + '</div></div>';
 }
 
@@ -885,116 +885,116 @@ function _f1017(){
 
 
 const TYPES={truefalse:'✔ Верно/Неверно',match:'↔ Соединение',multichoice:'☑ Множ.выбор',order:'⇅ Порядок',fill:'✏ Вписать',wordguess:'✍ Свободный ответ',textanswer:'💬 Текст + ответ',sentence:'🔤 Собери предложение'};
-function _f1019(){
+function _f100e(){
   const ok=G.game.cols*G.game.rows===G.puzzles.length;
   return`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <div class="sec-title" style="margin-bottom:0">📝 Задания (${G.puzzles.length})</div>
     <div style="display:flex;gap:6px">
-      <button class="btn btn-ghost btn-sm" onclick="_f1036()" style="color:#8a6bff;border-color:#8a6bff40">⚡ Быстрое создание</button>
-      <button class="btn btn-dashed btn-sm" onclick="_f1026()">+ Добавить</button>
+      <button class="btn btn-ghost btn-sm" onclick="showBulkCreate()" style="color:#8a6bff;border-color:#8a6bff40">⚡ Быстрое создание</button>
+      <button class="btn btn-dashed btn-sm" onclick="addTask()">+ Добавить</button>
     </div>
   </div>
-  ${showingBulk?_f1037():''}
+  ${showingBulk?_f101b():''}
   <div class="note ${ok?'note-green':'note-gold'}" style="margin-bottom:10px">Заданий: ${G.puzzles.length}, сетка: ${G.game.cols}×${G.game.rows}=${G.game.cols*G.game.rows}. ${ok?'✅ Совпадает.':'⚠️ Не совпадает!'}</div>
   ${G.puzzles.map((p,i)=>`
   <div class="tcard" id="tc-${i}">
-    <div class="tcard-hdr" onclick="_f101b(${i})">
+    <div class="tcard-hdr" onclick="_f100f(${i})">
       <div class="tnum">${i+1}</div>
-      <input class="ttedit" value="${_f100c(p.title)}" onclick="event.stopPropagation()" onchange="G.puzzles[${i}].title=this.value;_f100a();_f1002()"/>
-      <select class="ttsel" onchange="_f101c(${i},this.value)" onclick="event.stopPropagation()">
+      <input class="ttedit" value="${_f1005(p.title)}" onclick="event.stopPropagation()" onchange="G.puzzles[${i}].title=this.value;_f1004();_f1001()"/>
+      <select class="ttsel" onchange="changeType(${i},this.value)" onclick="event.stopPropagation()">
         ${Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${p.type===k?' selected':''}>${v}</option>`).join('')}
       </select>
-      <button class="btn-ghost btn-sm" onclick="event.stopPropagation();_f1028(${i})" title="Дублировать" style="background:none;border:1px solid #252836;border-radius:4px;padding:2px 7px;color:#57d6ff;cursor:pointer;font-size:11px">⧉</button><button class="del-btn" onclick="event.stopPropagation();_f1027(${i})">×</button>
+      <button class="btn-ghost btn-sm" onclick="event.stopPropagation();dupTask(${i})" title="Дублировать" style="background:none;border:1px solid #252836;border-radius:4px;padding:2px 7px;color:#57d6ff;cursor:pointer;font-size:11px">⧉</button><button class="del-btn" onclick="event.stopPropagation();delTask(${i})">×</button>
     </div>
-    <div class="tbody${openTaskIdx===i?' open':''}" id="tb-${i}">${_f101a(p,i)}</div>
+    <div class="tbody${openTaskIdx===i?' open':''}" id="tb-${i}">${rTB(p,i)}</div>
   </div>`).join('')}
-  <button class="btn btn-dashed" onclick="_f1026()" style="width:100%;justify-content:center;margin-top:4px">+ Добавить задание</button>`;}
+  <button class="btn btn-dashed" onclick="addTask()" style="width:100%;justify-content:center;margin-top:4px">+ Добавить задание</button>`;}
 
-function _f101a(p,i){
-  let h=`<div class="fr"><div class="fl" style="color:var(--gold);font-weight:700">📌 Заголовок<br><span style="font-size:9px;font-weight:400;color:var(--muted)">(вверху карточки)</span></div><input type="text" class="gf" style="border-color:#e8b86d30" value="${_f100c(p.title)}" placeholder="Например: Математика — Сложение" oninput="G.puzzles[${i}].title=this.value;_f100a();_f1002()"/></div>`;
-  h+=`<div class="fr"><div class="fl">Вопрос</div><textarea class="tai" style="min-height:40px" oninput="G.puzzles[${i}].question=this.value;_f1002()">${_f100c(p.question)}</textarea></div>`;
+function rTB(p,i){
+  let h=`<div class="fr"><div class="fl" style="color:var(--gold);font-weight:700">📌 Заголовок<br><span style="font-size:9px;font-weight:400;color:var(--muted)">(вверху карточки)</span></div><input type="text" class="gf" style="border-color:#e8b86d30" value="${_f1005(p.title)}" placeholder="Например: Математика — Сложение" oninput="G.puzzles[${i}].title=this.value;_f1004();_f1001()"/></div>`;
+  h+=`<div class="fr"><div class="fl">Вопрос</div><textarea class="tai" style="min-height:40px" oninput="G.puzzles[${i}].question=this.value;_f1001()">${_f1005(p.question)}</textarea></div>`;
   if(p.type==='truefalse'){
     h+=`<div class="sub-lbl">Утверждения</div>`;
     (p.statements||[]).forEach((st,si)=>{h+=`<div class="stmt-row">
-      <input type="text" value="${_f100c(st.text)}" oninput="G.puzzles[${i}].statements[${si}].text=this.value;_f1002()" placeholder="Утверждение..."/>
+      <input type="text" value="${_f1005(st.text)}" oninput="G.puzzles[${i}].statements[${si}].text=this.value;_f1001()" placeholder="Утверждение..."/>
       <div class="tc-wrap">
-        <button class="tc${st.answer==='true'?' at':''}" onclick="_f101d(${i},${si},'true')">ВЕРНО</button>
-        <button class="tc${st.answer==='false'?' af':''}" onclick="_f101d(${i},${si},'false')">НЕТ</button>
+        <button class="tc${st.answer==='true'?' at':''}" onclick="setSA(${i},${si},'true')">ВЕРНО</button>
+        <button class="tc${st.answer==='false'?' af':''}" onclick="setSA(${i},${si},'false')">НЕТ</button>
       </div>
-      <button class="del-btn" onclick="_f101f(${i},'statements',${si})">×</button>
+      <button class="del-btn" onclick="_f1010(${i},'statements',${si})">×</button>
     </div>`;});
-    h+=`<button class="btn btn-dashed btn-sm" onclick="_f101e(${i},'statements',{text:'Утверждение',answer:'true'})">+ Утверждение</button>`;
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addItem(${i},'statements',{text:'Утверждение',answer:'true'})">+ Утверждение</button>`;
   } else if(p.type==='match'){
     h+=`<div class="sub-lbl">Пары (левый → правый/ответ)</div>`;
     (p.pairs||[]).forEach((pr,pi)=>{h+=`<div class="pair-row">
-      <input type="text" value="${_f100c(pr.left)}" oninput="G.puzzles[${i}].pairs[${pi}].left=this.value;_f1002()" placeholder="Левый..."/>
+      <input type="text" value="${_f1005(pr.left)}" oninput="G.puzzles[${i}].pairs[${pi}].left=this.value;_f1001()" placeholder="Левый..."/>
       <div class="pair-arr">→</div>
-      <input type="text" value="${_f100c(pr.answer)}" oninput="G.puzzles[${i}].pairs[${pi}].answer=this.value;_f1002()" placeholder="Ответ..."/>
-      <button class="del-btn" onclick="_f101f(${i},'pairs',${pi})">×</button>
+      <input type="text" value="${_f1005(pr.answer)}" oninput="G.puzzles[${i}].pairs[${pi}].answer=this.value;_f1001()" placeholder="Ответ..."/>
+      <button class="del-btn" onclick="_f1010(${i},'pairs',${pi})">×</button>
     </div>`;});
-    h+=`<button class="btn btn-dashed btn-sm" onclick="_f101e(${i},'pairs',{left:'',answer:''})">+ Пара</button>`;
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addItem(${i},'pairs',{left:'',answer:''})">+ Пара</button>`;
     h+=`<div class="sub-lbl" style="margin-top:10px">Все варианты (включая ложные)</div>`;
     (p.options||[]).forEach((opt,oi)=>{h+=`<div style="display:flex;gap:5px;margin-bottom:4px">
-      <input type="text" value="${_f100c(opt)}" oninput="G.puzzles[${i}].options[${oi}]=this.value;_f1002()" style="flex:1" placeholder="Вариант..."/>
-      <button class="del-btn" onclick="_f1021(${i},${oi})">×</button>
+      <input type="text" value="${_f1005(opt)}" oninput="G.puzzles[${i}].options[${oi}]=this.value;_f1001()" style="flex:1" placeholder="Вариант..."/>
+      <button class="del-btn" onclick="_f1012(${i},${oi})">×</button>
     </div>`;});
-    h+=`<button class="btn btn-dashed btn-sm" onclick="_f1020(${i})">+ Вариант</button>`;
+    h+=`<button class="btn btn-dashed btn-sm" onclick="_f1011(${i})">+ Вариант</button>`;
   } else if(p.type==='multichoice'){
     (p.questions||[]).forEach((q,qi)=>{h+=`<div class="mc-qblock">
       <div style="display:flex;gap:5px;margin-bottom:6px">
-        <input type="text" value="${_f100c(q.q)}" oninput="G.puzzles[${i}].questions[${qi}].q=this.value;_f1002()" style="flex:1" placeholder="Вопрос..."/>
-        <button class="del-btn" onclick="_f1023(${i},${qi})">×</button>
+        <input type="text" value="${_f1005(q.q)}" oninput="G.puzzles[${i}].questions[${qi}].q=this.value;_f1001()" style="flex:1" placeholder="Вопрос..."/>
+        <button class="del-btn" onclick="_f1013(${i},${qi})">×</button>
       </div>
       <div style="font-size:9px;color:#353850;margin-bottom:4px">Варианты (● = правильный):</div>
       <div class="mc-opts">`;
       (q.options||[]).forEach((opt,oi)=>{h+=`<div class="mc-opt-row">
-        <input type="radio" name="mc${i}q${qi}" class="rc" ${q.answer===oi?'checked':''} onchange="G.puzzles[${i}].questions[${qi}].answer=${oi};_f1002()"/>
-        <input type="text" value="${_f100c(opt)}" oninput="G.puzzles[${i}].questions[${qi}].options[${oi}]=this.value;_f1002()" style="flex:1;min-width:0" placeholder="Вариант..."/>
+        <input type="radio" name="mc${i}q${qi}" class="rc" ${q.answer===oi?'checked':''} onchange="G.puzzles[${i}].questions[${qi}].answer=${oi};_f1001()"/>
+        <input type="text" value="${_f1005(opt)}" oninput="G.puzzles[${i}].questions[${qi}].options[${oi}]=this.value;_f1001()" style="flex:1;min-width:0" placeholder="Вариант..."/>
       </div>`;});
       h+=`</div></div>`;});
-    h+=`<button class="btn btn-dashed btn-sm" onclick="_f1022(${i})">+ Вопрос</button>`;
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addMCQ(${i})">+ Вопрос</button>`;
   } else if(p.type==='order'){
     h+=`<div style="display:grid;grid-template-columns:1fr 60px;gap:5px;margin-bottom:4px"><div style="font-size:9px;color:#353850">Элемент</div><div style="font-size:9px;color:#353850;text-align:center">№ позиция</div></div>`;
     (p.items||[]).forEach((it,ii)=>{h+=`<div class="order-row">
-      <input type="text" value="${_f100c(it.text)}" oninput="G.puzzles[${i}].items[${ii}].text=this.value;_f1002()" placeholder="Элемент..."/>
-      <input type="text" value="${_f100c(it.answer)}" oninput="G.puzzles[${i}].items[${ii}].answer=this.value;_f1002()" style="text-align:center" placeholder="#"/>
-      <button class="del-btn" onclick="_f101f(${i},'items',${ii})">×</button>
+      <input type="text" value="${_f1005(it.text)}" oninput="G.puzzles[${i}].items[${ii}].text=this.value;_f1001()" placeholder="Элемент..."/>
+      <input type="text" value="${_f1005(it.answer)}" oninput="G.puzzles[${i}].items[${ii}].answer=this.value;_f1001()" style="text-align:center" placeholder="#"/>
+      <button class="del-btn" onclick="_f1010(${i},'items',${ii})">×</button>
     </div>`;});
-    h+=`<button class="btn btn-dashed btn-sm" onclick="_f101e(${i},'items',{text:'',answer:'1'})">+ Элемент</button>`;
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addItem(${i},'items',{text:'',answer:'1'})">+ Элемент</button>`;
   } else if(p.type==='fill'){
     if(!p.items) p.items=[];
     h+=`<div style="display:grid;grid-template-columns:1fr 1fr 70px;gap:5px;margin-bottom:4px"><div style="font-size:9px;color:#353850">До пропуска</div><div style="font-size:9px;color:#353850">После пропуска</div><div style="font-size:9px;color:#353850">Ответ</div></div>`;
     p.items.forEach((it,ii)=>{h+=`<div style="display:grid;grid-template-columns:1fr 1fr 70px 24px;gap:5px;margin-bottom:5px;align-items:center">
-      <input type="text" value="${_f100c(it.before||'')}" oninput="G.puzzles[${i}].items[${ii}].before=this.value;_f1002()" placeholder="До..."/>
-      <input type="text" value="${_f100c(it.after||'')}" oninput="G.puzzles[${i}].items[${ii}].after=this.value;_f1002()" placeholder="После..."/>
-      <input type="text" value="${_f100c(it.inp||'')}" oninput="G.puzzles[${i}].items[${ii}].inp=this.value;_f1002()" placeholder="Ответ"/>
-      <button class="del-btn" onclick="_f101f(${i},'items',${ii})">×</button>
+      <input type="text" value="${_f1005(it.before||'')}" oninput="G.puzzles[${i}].items[${ii}].before=this.value;_f1001()" placeholder="До..."/>
+      <input type="text" value="${_f1005(it.after||'')}" oninput="G.puzzles[${i}].items[${ii}].after=this.value;_f1001()" placeholder="После..."/>
+      <input type="text" value="${_f1005(it.inp||'')}" oninput="G.puzzles[${i}].items[${ii}].inp=this.value;_f1001()" placeholder="Ответ"/>
+      <button class="del-btn" onclick="_f1010(${i},'items',${ii})">×</button>
     </div>`;});
-    h+=`<button class="btn btn-dashed btn-sm" onclick="_f101e(${i},'items',{before:'',after:'',inp:''})">+ Пропуск</button>`;
+    h+=`<button class="btn btn-dashed btn-sm" onclick="addItem(${i},'items',{before:'',after:'',inp:''})">+ Пропуск</button>`;
   } else if(p.type==='wordguess'){
     if(!p.clues) p.clues=[];
     h+=`<div style="display:grid;grid-template-columns:1fr 120px;gap:5px;margin-bottom:4px"><div style="font-size:9px;color:#353850">Подсказка</div><div style="font-size:9px;color:#353850">Ответ</div></div>`;
     p.clues.forEach((cl,ci)=>{h+=`<div style="display:grid;grid-template-columns:1fr 120px 24px;gap:5px;margin-bottom:5px;align-items:center">
-      <input type="text" value="${_f100c(cl.hint||'')}" oninput="G.puzzles[${i}].clues[${ci}].hint=this.value;_f1002()" placeholder="Подсказка..."/>
-      <input type="text" value="${_f100c(cl.answer||'')}" oninput="G.puzzles[${i}].clues[${ci}].answer=this.value;_f1002()" placeholder="Ответ"/>
-      <button class="del-btn" onclick="_f1025(${i},${ci})">×</button>
+      <input type="text" value="${_f1005(cl.hint||'')}" oninput="G.puzzles[${i}].clues[${ci}].hint=this.value;_f1001()" placeholder="Подсказка..."/>
+      <input type="text" value="${_f1005(cl.answer||'')}" oninput="G.puzzles[${i}].clues[${ci}].answer=this.value;_f1001()" placeholder="Ответ"/>
+      <button class="del-btn" onclick="_f1015(${i},${ci})">×</button>
     </div>`;});
-    h+=`<button class="btn btn-dashed btn-sm" onclick="_f1024(${i})">+ Подсказка</button>`;
+    h+=`<button class="btn btn-dashed btn-sm" onclick="_f1014(${i})">+ Подсказка</button>`;
   }
 
   if(p.type==='sentence'){
     if(!p.words) p.words=[];
     let h2 = html;
     h2 += '<div class="sub-lbl">Правильное предложение (слова через пробел)</div>';
-    h2 += '<input type="text" class="gf" value="'+(p.sentence||'')+'" placeholder="Осень пришла и листья упали" oninput="G.puzzles['+i+'].sentence=this.value;G.puzzles['+i+'].words=this.value.trim().split(/\\s+/).filter(Boolean);_f1002()"/>';
+    h2 += '<input type="text" class="gf" value="'+(p.sentence||'')+'" placeholder="Осень пришла и листья упали" oninput="G.puzzles['+i+'].sentence=this.value;G.puzzles['+i+'].words=this.value.trim().split(/\\s+/).filter(Boolean);_f1001()"/>';
     h2 += '<div class="note note-blue" style="margin-top:8px">Слова перемешиваются и ученик собирает правильный порядок.</div>';
     return h2;
   }
   if(p.type==='textanswer'){
     h+='<div class="sub-lbl">Текст / вопрос</div>';
-    h+='<textarea class="tai" style="min-height:70px" placeholder="Вопрос или задание для ученика" oninput="G.puzzles['+i+'].text=this.value;_f1002()">'+(p.text||'')+'</textarea>';
+    h+='<textarea class="tai" style="min-height:70px" placeholder="Вопрос или задание для ученика" oninput="G.puzzles['+i+'].text=this.value;_f1001()">'+(p.text||'')+'</textarea>';
     h+='<div class="sub-lbl" style="margin-top:8px">Правильный ответ</div>';
-    h+='<input type="text" class="gf" value="'+(p.answer||'')+'" placeholder="Что должен написать ученик" oninput="G.puzzles['+i+'].answer=this.value;_f1002()"/>';
+    h+='<input type="text" class="gf" value="'+(p.answer||'')+'" placeholder="Что должен написать ученик" oninput="G.puzzles['+i+'].answer=this.value;_f1001()"/>';
     return h;
   }
   return h;
@@ -1003,9 +1003,9 @@ function _f101a(p,i){
 // ═══════════════════════════════════
 // TASK MUTATIONS
 // ═══════════════════════════════════
-function _f101b(i){openTaskIdx=openTaskIdx===i?null:i;_f100f();}
+function _f100f(i){openTaskIdx=openTaskIdx===i?null:i;_f1008();}
 
-function _f101c(i,t){
+function changeType(i,t){
   G.puzzles[i].type=t; const p=G.puzzles[i];
   if(t==='truefalse'&&!p.statements) p.statements=[{text:'Утверждение',answer:'true'}];
   if(t==='match'&&!p.pairs){p.pairs=[{left:'',answer:''}];p.options=[''];}
@@ -1022,59 +1022,59 @@ function _f101c(i,t){
   if(p.title === _defaultTitle || _oldTitles.includes(p.title)) {
     p.title = _typeTitles[t] || _defaultTitle;
   }
-  openTaskIdx=i; _f100f(); _f1002();
+  openTaskIdx=i; _f1008(); _f1001();
 }
 
-function _f101d(i,si,v){G.puzzles[i].statements[si].answer=v;_f1029(i);_f1002();}
+function setSA(i,si,v){G.puzzles[i].statements[si].answer=v;reTask(i);_f1001();}
 
-function _f101e(i,k,tpl){
+function addItem(i,k,tpl){
   if(!G.puzzles[i][k]) G.puzzles[i][k]=[];
   G.puzzles[i][k].push({...tpl});
-  _f1029(i); _f1002();
+  reTask(i); _f1001();
 }
-function _f101f(i,k,idx){G.puzzles[i][k].splice(idx,1);_f1029(i);_f1002();}
+function _f1010(i,k,idx){G.puzzles[i][k].splice(idx,1);reTask(i);_f1001();}
 
-function _f1020(i){G.puzzles[i].options.push('');_f1029(i);_f1002();}
-function _f1021(i,oi){G.puzzles[i].options.splice(oi,1);_f1029(i);_f1002();}
+function _f1011(i){G.puzzles[i].options.push('');reTask(i);_f1001();}
+function _f1012(i,oi){G.puzzles[i].options.splice(oi,1);reTask(i);_f1001();}
 
-function _f1022(i){
+function addMCQ(i){
   G.puzzles[i].questions.push({q:'',options:['А)','Б)','В)','Г)'],answer:0});
-  _f1029(i); _f1002();
+  reTask(i); _f1001();
 }
-function _f1023(i,qi){G.puzzles[i].questions.splice(qi,1);_f1029(i);_f1002();}
+function _f1013(i,qi){G.puzzles[i].questions.splice(qi,1);reTask(i);_f1001();}
 
-function _f1024(i){
+function _f1014(i){
   if(!G.puzzles[i].clues) G.puzzles[i].clues=[];
   G.puzzles[i].clues.push({hint:'',answer:''});
-  _f1029(i); _f1002();
+  reTask(i); _f1001();
 }
-function _f1025(i,ci){G.puzzles[i].clues.splice(ci,1);_f1029(i);_f1002();}
+function _f1015(i,ci){G.puzzles[i].clues.splice(ci,1);reTask(i);_f1001();}
 
-function _f1026(){
+function addTask(){
   G.puzzles.push({type:'truefalse',title:'Задание '+(G.puzzles.length+1),question:'Вопрос...',statements:[{text:'Утверждение',answer:'true'}]});
   openTaskIdx=G.puzzles.length-1;
-  _f100f(); _f1002();
+  _f1008(); _f1001();
 }
-function _f1027(i){
-  _f1000('Удалить задание ' + (i+1) + '?', function(){
+function delTask(i){
+  showConfirm('Удалить задание ' + (i+1) + '?', function(){
     G.puzzles.splice(i,1); openTaskIdx=null;
-    _f100f(); _f1002();
+    _f1008(); _f1001();
   });
 }
-function _f1028(i){
+function dupTask(i){
   const copy = JSON.parse(JSON.stringify(G.puzzles[i]));
   copy.title = copy.title + ' (копия)';
   G.puzzles.splice(i+1, 0, copy);
   openTaskIdx = i+1;
-  _f100f(); _f1002();
-  _f1001('📋 Задание продублировано');
+  _f1008(); _f1001();
+  _f1000('📋 Задание продублировано');
 }
-function _f1029(i){
+function reTask(i){
   const el=document.getElementById('tb-'+i);
-  if(el){el.innerHTML=_f101a(G.puzzles[i],i);}
+  if(el){el.innerHTML=rTB(G.puzzles[i],i);}
 }
-function _f100b(i){
-  openTaskIdx=i; _f100f();
+function openAt(i){
+  openTaskIdx=i; _f1008();
   setTimeout(()=>{const el=document.getElementById('tc-'+i);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},80);
 }
 
@@ -1157,13 +1157,13 @@ const MATH_CHEAT = [
   {label:'{…}', code:'$\\begin{cases} x+y=5 \\\\ x-y=1 \\end{cases}$', hint:'Система уравнений'},
 ];
 
-function _f102a(code) {
-  navigator.clipboard.writeText(code).then(()=>_f1001('📋 Скопировано!')).catch(()=>{_f1044(code);_f1001('📋 Скопировано!');});
+function copyMath(code) {
+  navigator.clipboard.writeText(code).then(()=>_f1000('📋 Скопировано!')).catch(()=>{_f1023(code);_f1000('📋 Скопировано!');});
 }
-function _f102b(idx) {
+function insertMath(idx) {
   var code = MATH_CHEAT[idx] ? MATH_CHEAT[idx].code : '';
   if (!code) return;
-  _f102a(code);
+  copyMath(code);
 }
 
 
@@ -1176,18 +1176,18 @@ if (!G.style) G.style = {
 if (!G.style.border) G.style.border = {color:'rgba(246,195,91,0.6)', width:'2', radius:'4', glow:'rgba(246,195,91,0.2)', glowSize:'60'};
   if (!G.style.zoomBg) G.style.zoomBg = '';
 
-function _f102c(key) {
+function applyTheme(key) {
   const t = THEMES[key];
   if (!t) return;
   Object.assign(G.colors, t.colors);
   G.style = {border: {...t.border}, cardBg: t.cardBg};
-  _f100f();          // re-render editor UI with new values
+  _f1008();          // re-render editor UI with new values
   clearTimeout(pvTimer);   // cancel any pending preview
-  _f1003();           // force immediate preview reload
-  _f1001('🎨 Тема «' + t.name + '» применена');
+  _f1002();           // force immediate preview reload
+  _f1000('🎨 Тема «' + t.name + '» применена');
 }
 
-function _f102d() {
+function _f1016() {
   if (!G.style) G.style = {};
   if (!G.style.border) G.style.border = {color:'rgba(246,195,91,0.6)',width:'2',radius:'4',glow:'rgba(246,195,91,0.2)',glowSize:'60'};
   if (!G.colors) G.colors = {};
@@ -1216,7 +1216,7 @@ function _f102d() {
     var dots = ['bgDark','cyan','gold','green'].map(function(cc) {
       return '<span style="width:9px;height:9px;border-radius:50%;background:' + t.colors[cc] + ';display:inline-block;flex-shrink:0"></span>';
     }).join('');
-    themeBtns += '<button class="btn btn-ghost" onclick="_f102c(\'' + k + '\')" style="justify-content:flex-start;padding:10px 12px;font-size:11px;text-align:left;border-color:#252836;gap:6px">'
+    themeBtns += '<button class="btn btn-ghost" onclick="applyTheme(\'' + k + '\')" style="justify-content:flex-start;padding:10px 12px;font-size:11px;text-align:left;border-color:#252836;gap:6px">'
       + '<span style="font-size:14px">' + t.name.split(' ')[0] + '</span>'
       + '<span style="flex:1">' + t.name.split(' ').slice(1).join(' ') + '</span>'
       + '<span style="display:flex;gap:3px">' + dots + '</span>'
@@ -1229,7 +1229,7 @@ function _f102d() {
   swatches.forEach(function(p) {
     var grad = 'linear-gradient(145deg,' + p.c1 + ',' + p.c2 + ')';
     var border = cardBg.includes(p.c1) ? 'border:2px solid #f6c35b' : 'border:1px solid #252836';
-    swatchHtml += '<div onclick="_f1030(\'' + grad + '\')" style="cursor:pointer;height:36px;border-radius:6px;background:' + grad + ';' + border + '" onmouseenter="this.style.transform=\'scale(1.06)\'" onmouseleave="this.style.transform=\'\'"></div>';
+    swatchHtml += '<div onclick="setBg(\'' + grad + '\')" style="cursor:pointer;height:36px;border-radius:6px;background:' + grad + ';' + border + '" onmouseenter="this.style.transform=\'scale(1.06)\'" onmouseleave="this.style.transform=\'\'"></div>';
   });
 
   // ── Interface colors ──
@@ -1239,8 +1239,8 @@ function _f102d() {
     var hexVal = (v && v.startsWith('#')) ? v : '#F6C35B';
     colorPickers += '<div class="fr"><div class="fl">' + (lbl[k]||k) + '</div>'
       + '<div style="display:flex;gap:7px;align-items:center">'
-      + '<input type="color" value="' + hexVal + '" oninput="G.colors[\'' + k + '\']=this.value;this.nextElementSibling.value=this.value;clearTimeout(pvTimer);_f1003();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>'
-      + '<input type="text" class="gf" data-gk="colors.' + k + '" value="' + _f100c(v) + '" style="width:88px;font-family:monospace;font-size:10px"/>'
+      + '<input type="color" value="' + hexVal + '" oninput="G.colors[\'' + k + '\']=this.value;this.nextElementSibling.value=this.value;clearTimeout(pvTimer);_f1002();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>'
+      + '<input type="text" class="gf" data-gk="colors.' + k + '" value="' + _f1005(v) + '" style="width:88px;font-family:monospace;font-size:10px"/>'
       + '</div></div>';
   });
 
@@ -1255,11 +1255,11 @@ function _f102d() {
   var textPickers = '';
   textColorDefs.forEach(function(t2) {
     var val = tx[t2.key] || t2.def;
-    var hexVal = _f102f(val);
+    var hexVal = _f1018(val);
     textPickers += '<div class="fr"><div class="fl">' + t2.label + '</div>'
       + '<div style="display:flex;gap:7px;align-items:center">'
-      + '<input type="color" value="' + hexVal + '" oninput="if(!G.textColors)G.textColors={};G.textColors[\'' + t2.key + '\']=this.value;this.nextElementSibling.value=this.value;clearTimeout(pvTimer);_f1003();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>'
-      + '<input type="text" class="gf" data-gk="textColors.' + t2.key + '" value="' + _f100c(val) + '" style="width:88px;font-family:monospace;font-size:10px"/>'
+      + '<input type="color" value="' + hexVal + '" oninput="if(!G.textColors)G.textColors={};G.textColors[\'' + t2.key + '\']=this.value;this.nextElementSibling.value=this.value;clearTimeout(pvTimer);_f1002();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>'
+      + '<input type="text" class="gf" data-gk="textColors.' + t2.key + '" value="' + _f1005(val) + '" style="width:88px;font-family:monospace;font-size:10px"/>'
       + '<span style="font-size:11px;background:#0a0c14;padding:2px 8px;border-radius:3px;color:' + val + '">Аа</span>'
       + '</div></div>';
   });
@@ -1276,32 +1276,32 @@ function _f102d() {
     + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">' + swatchHtml + '</div>'
     + '<div style="font-size:10px;color:#555870;margin-bottom:7px">Свои цвета:</div>'
     + '<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">'
-    + '<div><div style="font-size:9px;color:#454760;margin-bottom:3px">Цвет 1</div><input type="color" id="bgColor1" value="' + _f1031(cardBg) + '" oninput="_f1032()" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/></div>'
-    + '<div><div style="font-size:9px;color:#454760;margin-bottom:3px">Цвет 2</div><input type="color" id="bgColor2" value="' + _f1031(cardBg.split(',').pop()) + '" oninput="_f1032()" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/></div>'
-    + '<div style="flex:1"><div style="font-size:9px;color:#454760;margin-bottom:3px">Прозрачность</div><input type="range" id="bgOpacity" min="70" max="100" value="96" oninput="_f1032();this.nextSibling.textContent=this.value+\'%\'" style="width:100%"/><span style="font-size:10px;color:#f6c35b">96%</span></div>'
+    + '<div><div style="font-size:9px;color:#454760;margin-bottom:3px">Цвет 1</div><input type="color" id="bgColor1" value="' + _f1019(cardBg) + '" oninput="updateCustomBg()" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/></div>'
+    + '<div><div style="font-size:9px;color:#454760;margin-bottom:3px">Цвет 2</div><input type="color" id="bgColor2" value="' + _f1019(cardBg.split(',').pop()) + '" oninput="updateCustomBg()" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/></div>'
+    + '<div style="flex:1"><div style="font-size:9px;color:#454760;margin-bottom:3px">Прозрачность</div><input type="range" id="bgOpacity" min="70" max="100" value="96" oninput="updateCustomBg();this.nextSibling.textContent=this.value+\'%\'" style="width:100%"/><span style="font-size:10px;color:#f6c35b">96%</span></div>'
     + '</div>'
-    + '<div id="cardBgPreview" style="height:44px;border-radius:6px;border:1px solid #252836;background:' + _f100c(cardBg) + ';display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);font-size:10px">Предпросмотр карточки</div>'
+    + '<div id="cardBgPreview" style="height:44px;border-radius:6px;border:1px solid #252836;background:' + _f1005(cardBg) + ';display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);font-size:10px">Предпросмотр карточки</div>'
     + '</div></div>'
 
     + '<div class="panel"><div class="phdr">🖼 Фон окна задания</div><div class="pbody">'
     + '<div class="note note-blue" style="margin-bottom:8px;font-size:10px">Фон внутри окна когда ученик открывает задание. Вставьте URL картинки или CSS-цвет.</div>'
-    + '<input type="text" class="gf" data-gk="style.zoomBg" value="' + _f100c(s.zoomBg||'') + '" placeholder="https://... или #1a1510 или linear-gradient(...)"/>'
-    + (s.zoomBg ? '<img src="' + _f100c(s.zoomBg) + '" style="width:100%;max-height:70px;object-fit:cover;border-radius:5px;margin-top:6px" onerror="this.style.display=\'none\'"/>' : '')
+    + '<input type="text" class="gf" data-gk="style.zoomBg" value="' + _f1005(s.zoomBg||'') + '" placeholder="https://... или #1a1510 или linear-gradient(...)"/>'
+    + (s.zoomBg ? '<img src="' + _f1005(s.zoomBg) + '" style="width:100%;max-height:70px;object-fit:cover;border-radius:5px;margin-top:6px" onerror="this.style.display=\'none\'"/>' : '')
     + '</div></div>'
 
     + '<div class="panel"><div class="phdr">🔲 Рамка</div><div class="pbody">'
     + '<div class="fr"><div class="fl">Цвет рамки</div><div style="display:flex;gap:8px;align-items:center">'
-    + '<input type="color" value="' + _f102f(b.color||'rgba(246,195,91,0.6)') + '" oninput="if(!G.style)G.style={};if(!G.style.border)G.style.border={};G.style.border.color=\'rgba(\'+_f102e(this.value)+\',0.6)\';this.nextElementSibling.value=G.style.border.color;clearTimeout(pvTimer);_f1003();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>'
-    + '<input type="text" class="gf" data-gk="style.border.color" value="' + _f100c(b.color||'rgba(246,195,91,0.6)') + '" style="font-family:monospace;font-size:11px;flex:1"/>'
+    + '<input type="color" value="' + _f1018(b.color||'rgba(246,195,91,0.6)') + '" oninput="if(!G.style)G.style={};if(!G.style.border)G.style.border={};G.style.border.color=\'rgba(\'+_f1017(this.value)+\',0.6)\';this.nextElementSibling.value=G.style.border.color;clearTimeout(pvTimer);_f1002();" style="width:32px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:1px"/>'
+    + '<input type="text" class="gf" data-gk="style.border.color" value="' + _f1005(b.color||'rgba(246,195,91,0.6)') + '" style="font-family:monospace;font-size:11px;flex:1"/>'
     + '</div></div>'
     + '<div class="fr"><div class="fl">Толщина</div><div style="display:flex;align-items:center;gap:8px">'
-    + '<input type="range" min="0" max="6" step="1" value="' + (b.width||2) + '" oninput="if(!G.style.border)G.style.border={};G.style.border.width=this.value;this.nextElementSibling.textContent=this.value+\'px\';clearTimeout(pvTimer);_f1003();" style="flex:1"/>'
+    + '<input type="range" min="0" max="6" step="1" value="' + (b.width||2) + '" oninput="if(!G.style.border)G.style.border={};G.style.border.width=this.value;this.nextElementSibling.textContent=this.value+\'px\';clearTimeout(pvTimer);_f1002();" style="flex:1"/>'
     + '<span style="font-size:11px;color:#f6c35b;min-width:28px">' + (b.width||2) + 'px</span></div></div>'
     + '<div class="fr"><div class="fl">Скругление</div><div style="display:flex;align-items:center;gap:8px">'
-    + '<input type="range" min="0" max="24" step="1" value="' + (b.radius||4) + '" oninput="if(!G.style.border)G.style.border={};G.style.border.radius=this.value;this.nextElementSibling.textContent=this.value+\'px\';clearTimeout(pvTimer);_f1003();" style="flex:1"/>'
+    + '<input type="range" min="0" max="24" step="1" value="' + (b.radius||4) + '" oninput="if(!G.style.border)G.style.border={};G.style.border.radius=this.value;this.nextElementSibling.textContent=this.value+\'px\';clearTimeout(pvTimer);_f1002();" style="flex:1"/>'
     + '<span style="font-size:11px;color:#f6c35b;min-width:28px">' + (b.radius||4) + 'px</span></div></div>'
     + '<div class="fr"><div class="fl">Свечение</div><div style="display:flex;align-items:center;gap:8px">'
-    + '<input type="range" min="0" max="120" step="5" value="' + (b.glowSize||60) + '" oninput="if(!G.style.border)G.style.border={};G.style.border.glowSize=this.value;this.nextElementSibling.textContent=this.value+\'px\';clearTimeout(pvTimer);_f1003();" style="flex:1"/>'
+    + '<input type="range" min="0" max="120" step="5" value="' + (b.glowSize||60) + '" oninput="if(!G.style.border)G.style.border={};G.style.border.glowSize=this.value;this.nextElementSibling.textContent=this.value+\'px\';clearTimeout(pvTimer);_f1002();" style="flex:1"/>'
     + '<span style="font-size:11px;color:#f6c35b;min-width:28px">' + (b.glowSize||60) + 'px</span></div></div>'
     + '</div></div>'
 
@@ -1312,12 +1312,12 @@ function _f102d() {
     + '<div class="panel"><div class="phdr">✏️ Цвета текста</div><div class="pbody">' + textPickers + '</div></div>';
 }
 
-function _f102e(hex) {
+function _f1017(hex) {
   const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
   return r+','+g+','+b;
 }
 
-function _f102f(rgba) {
+function _f1018(rgba) {
   // Convert "rgba(r,g,b,a)" or "#hex" to "#rrggbb" for color picker
   if (!rgba) return '#F6C35B';
   if (rgba.startsWith('#')) return rgba.slice(0,7);
@@ -1326,7 +1326,7 @@ function _f102f(rgba) {
   return '#' + [m[1],m[2],m[3]].map(x => parseInt(x).toString(16).padStart(2,'0')).join('');
 }
 
-function _f1030(grad) {
+function setBg(grad) {
   if (!G.style) G.style = {};
   if (!G.style.border) G.style.border = {color:'rgba(246,195,91,0.6)',width:'2',radius:'4',glow:'rgba(246,195,91,0.2)',glowSize:'60'};
   G.style.cardBg = grad;
@@ -1334,25 +1334,25 @@ function _f1030(grad) {
   // Sync bgDark/bgMid from gradient colors so game field updates too
   const cols = grad.match(/#[0-9a-fA-F]{6}/g) || grad.match(/rgba?\([\d,.\s]+\)/g);
   if (cols && cols.length >= 2) {
-    G.colors.bgDark = _f1031(cols[0]);
-    G.colors.bgMid  = _f1031(cols[1]);
+    G.colors.bgDark = _f1019(cols[0]);
+    G.colors.bgMid  = _f1019(cols[1]);
   } else if (cols && cols.length === 1) {
-    G.colors.bgDark = G.colors.bgMid = _f1031(cols[0]);
+    G.colors.bgDark = G.colors.bgMid = _f1019(cols[0]);
   }
 
   // Update preview swatch
   const preview = document.getElementById('cardBgPreview');
   if (preview) preview.style.background = grad;
   // Update active swatch border
-  document.querySelectorAll('[onclick^="_f1030"]').forEach(el => {
+  document.querySelectorAll('[onclick^="setBg"]').forEach(el => {
     const isActive = el.getAttribute('onclick').includes(grad.replace(/'/g,"\'"));
     el.style.border = isActive ? '2px solid #f6c35b' : '1px solid #252836';
   });
   clearTimeout(pvTimer);
-  _f1003();
+  _f1002();
 }
 
-function _f1031(s) {
+function _f1019(s) {
   if (!s) return '#0B1E4F';
   s = s.trim();
   if (s.startsWith('#')) return s.slice(0,7);
@@ -1361,7 +1361,7 @@ function _f1031(s) {
   return '#' + [m[1],m[2],m[3]].map(x=>parseInt(x).toString(16).padStart(2,'0')).join('');
 }
 
-function _f1032() {
+function updateCustomBg() {
   const c1 = document.getElementById('bgColor1');
   const c2 = document.getElementById('bgColor2');
   const op = document.getElementById('bgOpacity');
@@ -1373,11 +1373,11 @@ function _f1032() {
   // Also sync game field colors
   G.colors.bgDark = c1.value;
   G.colors.bgMid  = c2.value;
-  _f1030(grad);
+  setBg(grad);
 }
 
 
-function _f1033() {
+function _f101a() {
   const lang = G.lang || {font:'default', math:false};
   const fonts = [
     {key:'default',  name:'По умолчанию',  sample:'Привет • Hello • 123', css:''},
@@ -1394,7 +1394,7 @@ function _f1033() {
   var fontBtns = '';
   fonts.forEach(function(f) {
     var isActive = (lang.font || 'default') === f.key;
-    fontBtns += '<div onclick="_f1034(\'' + f.key + '\')" style="cursor:pointer;padding:10px 12px;border-radius:7px;'
+    fontBtns += '<div onclick="setLangFont(\'' + f.key + '\')" style="cursor:pointer;padding:10px 12px;border-radius:7px;'
       + 'border:' + (isActive ? '2px solid #f6c35b' : '1px solid #252836') + ';'
       + 'background:' + (isActive ? '#1e2030' : '#0a0c14') + ';transition:all .12s">'
       + '<div style="font-size:10px;color:#9a9eb8;margin-bottom:3px">' + f.name + '</div>'
@@ -1403,7 +1403,7 @@ function _f1033() {
   });
 
   // Build math toggle
-  var mathBtn = '<button class="btn ' + (lang.math ? 'btn-green' : 'btn-ghost') + '" onclick="_f1035()" style="font-size:12px">'
+  var mathBtn = '<button class="btn ' + (lang.math ? 'btn-green' : 'btn-ghost') + '" onclick="toggleMath()" style="font-size:12px">'
     + (lang.math ? '✅ Формулы включены' : '⬜ Включить формулы')
     + '</button>';
 
@@ -1423,7 +1423,7 @@ function _f1033() {
   if (lang.math) {
     var btns = '';
     MATH_CHEAT.forEach(function(item, i) {
-      btns += '<button onclick="_f102b(' + i + ')" title="' + item.hint + '" '
+      btns += '<button onclick="insertMath(' + i + ')" title="' + item.hint + '" '
         + 'style="background:#0a0c14;border:1px solid #252836;border-radius:5px;padding:5px 8px;'
         + 'color:#f6c35b;font-size:12px;cursor:pointer;font-family:Georgia,serif;min-width:36px">'
         + item.label + '</button>';
@@ -1451,29 +1451,29 @@ function _f1033() {
     + cheatHtml;
 }
 
-function _f1034(key) {
+function setLangFont(key) {
   if (!G.lang) G.lang = {font:'default', math:false};
   G.lang.font = key;
-  _f100f();
-  clearTimeout(pvTimer); _f1003();
-  _f1001('🌐 Шрифт изменён');
+  _f1008();
+  clearTimeout(pvTimer); _f1002();
+  _f1000('🌐 Шрифт изменён');
 }
 
-function _f1035() {
+function toggleMath() {
   if (!G.lang) G.lang = {font:'default', math:false};
   G.lang.math = !G.lang.math;
-  _f100f();
-  clearTimeout(pvTimer); _f1003();
-  _f1001(G.lang.math ? '📐 Формулы включены' : '⬜ Формулы отключены');
+  _f1008();
+  clearTimeout(pvTimer); _f1002();
+  _f1000(G.lang.math ? '📐 Формулы включены' : '⬜ Формулы отключены');
 }
 
 
-function _f1036() {
+function showBulkCreate() {
   showingBulk = !showingBulk;
-  _f100f();
+  _f1008();
 }
 
-function _f1037() {
+function _f101b() {
   return '<div class="panel" style="border-color:#8a6bff40"><div class="phdr" style="color:#8a6bff">⚡ Быстрое создание заданий</div><div class="pbody">'
     + '<div class="note note-blue" style="margin-bottom:14px">'
     + 'Каждая строка = один тайл. Скопируйте вопросы из документа и вставьте — сколько строк, столько тайлов.'
@@ -1481,7 +1481,7 @@ function _f1037() {
 
     + '<div style="margin-bottom:10px">'
     + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Тип заданий</div>'
-    + '<select id="bulkType" onchange="_f1038()" style="width:220px">'
+    + '<select id="bulkType" onchange="updateBulkUI()" style="width:220px">'
     + '<option value="wordguess">✍ Свободный ответ</option>'
     + '<option value="multichoice">☑ Выбор ответа (1 вопрос + варианты)</option>'
     + '<option value="truefalse">✔ Верно / Неверно</option>'
@@ -1492,12 +1492,12 @@ function _f1037() {
 
     + '<div>'
     + '<div style="font-size:10px;font-weight:700;color:#9a9eb8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Вопрос <span style="color:#555870;font-weight:400">(каждая строка = тайл)</span></div>'
-    + '<textarea id="bulkQ" class="tai" placeholder="Какая буква гласная?\nСколько будет 7 × 8?\nСтолица России?" style="min-height:160px;font-size:11px;line-height:1.8" oninput="_f1039()"></textarea>'
+    + '<textarea id="bulkQ" class="tai" placeholder="Какая буква гласная?\nСколько будет 7 × 8?\nСтолица России?" style="min-height:160px;font-size:11px;line-height:1.8" oninput="updateBulkPreview()"></textarea>'
     + '</div>'
 
     + '<div>'
     + '<div style="font-size:10px;font-weight:700;color:#7edb8a;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">✅ Правильный ответ <span style="color:#555870;font-weight:400">(построчно)</span></div>'
-    + '<textarea id="bulkRight" class="tai" placeholder="А\n56\nМосква" style="min-height:160px;font-size:11px;line-height:1.8" oninput="_f1039()"></textarea>'
+    + '<textarea id="bulkRight" class="tai" placeholder="А\n56\nМосква" style="min-height:160px;font-size:11px;line-height:1.8" oninput="updateBulkPreview()"></textarea>'
     + '</div>'
 
     + '<div id="bulkWrongWrap" style="opacity:0.3">'
@@ -1510,20 +1510,20 @@ function _f1037() {
     + '<div id="bulkPreviewBox" style="font-size:11px;color:#7edb8a;margin-bottom:12px;min-height:18px"></div>'
 
     + '<div style="display:flex;gap:8px;align-items:center">'
-    + '<button class="btn btn-gold" onclick="_f103b()" style="font-size:12px;padding:10px 22px">⚡ Создать тайлы</button>'
-    + '<button class="btn btn-ghost btn-sm" onclick="_f103a()">🗑 Очистить</button>'
+    + '<button class="btn btn-gold" onclick="generateBulkTasks()" style="font-size:12px;padding:10px 22px">⚡ Создать тайлы</button>'
+    + '<button class="btn btn-ghost btn-sm" onclick="clearBulkForm()">🗑 Очистить</button>'
     + '</div>'
     + '</div></div>';
 }
 
-function _f1038() {
+function updateBulkUI() {
   const type = document.getElementById('bulkType').value;
   const wrap = document.getElementById('bulkWrongWrap');
   if (wrap) wrap.style.opacity = type === 'wordguess' ? '0.3' : '1';
-  _f1039();
+  updateBulkPreview();
 }
 
-function _f1039() {
+function updateBulkPreview() {
   const qEl = document.getElementById('bulkQ');
   const box = document.getElementById('bulkPreviewBox');
   if (!qEl || !box) return;
@@ -1533,22 +1533,22 @@ function _f1039() {
     : '';
 }
 
-function _f103a() {
+function clearBulkForm() {
   ['bulkQ','bulkRight','bulkWrong'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  _f1039();
+  updateBulkPreview();
 }
 
-function _f103b() {
+function generateBulkTasks() {
   const type = document.getElementById('bulkType').value;
   const qRaw = document.getElementById('bulkQ').value.trim();
   const rRaw = document.getElementById('bulkRight').value.trim();
   const wEl  = document.getElementById('bulkWrong');
   const wRaw = wEl ? wEl.value.trim() : '';
 
-  if (!qRaw) { _f1001('⚠️ Введите вопросы'); return; }
+  if (!qRaw) { _f1000('⚠️ Введите вопросы'); return; }
 
   const questions = qRaw.split('\n').map(s => s.trim()).filter(Boolean);
   const rights    = rRaw.split('\n').map(s => s.trim());
@@ -1593,7 +1593,7 @@ function _f103b() {
     }
   });
 
-  if (newTasks.length === 0) { _f1001('⚠️ Не удалось создать задания'); return; }
+  if (newTasks.length === 0) { _f1000('⚠️ Не удалось создать задания'); return; }
 
   G.puzzles.push.apply(G.puzzles, newTasks);
   const total = G.puzzles.length;
@@ -1601,18 +1601,18 @@ function _f103b() {
   G.game.rows = Math.ceil(total / G.game.cols);
 
   showingBulk = false;
-  _f100f();
-  clearTimeout(pvTimer); _f1003();
-  _f1001('✅ Создано ' + newTasks.length + ' тайлов!');
+  _f1008();
+  clearTimeout(pvTimer); _f1002();
+  _f1000('✅ Создано ' + newTasks.length + ' тайлов!');
 }
 
 
 
-function _f103c(){
+function _f101c(){
   return`<div class="sec-title">🔗 Вставить в Genially</div>
 <div class="panel"><div class="phdr">Получить iframe</div><div class="pbody">
 <div class="note note-green" style="margin-bottom:16px">Нажмите кнопку — iframe-код будет скопирован в буфер обмена автоматически. Затем вставьте его в Genially через <b style="color:#c8cbdf">Insert → Embed</b>.</div>
-<button class="btn btn-gold" id="publishBtn" onclick="_f103d()" style="font-size:14px;padding:14px 22px;width:100%;justify-content:center;letter-spacing:.5px">📋 Скопировать iframe для Genially</button>
+<button class="btn btn-gold" id="publishBtn" onclick="publishAndCopy()" style="font-size:14px;padding:14px 22px;width:100%;justify-content:center;letter-spacing:.5px">📋 Скопировать iframe для Genially</button>
 <div id="publishStatus" style="font-size:11px;margin-top:12px;min-height:18px;color:#6b6f88;text-align:center"></div>
 <div class="note note-blue" style="margin-top:14px;font-size:10px">
   <b style="color:#c8cbdf">Как вставить:</b><br>
@@ -1623,13 +1623,13 @@ function _f103c(){
 </div></div>`;
 }
 
-async function _f103d() {
+async function publishAndCopy() {
   const btn = document.getElementById('publishBtn');
   const status = document.getElementById('publishStatus');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Генерация...'; }
   if (status) { status.textContent = ''; }
   try {
-    const url = await _f103f();
+    const url = await _f101e();
     const iframeCode = '<iframe src="'+url+'" width="100%" height="100%" frameborder="0" style="border:none;display:block" allowfullscreen></iframe>';
     try { localStorage.setItem('lastShareUrl', url); } catch(e) {}
     await navigator.clipboard.writeText(iframeCode);
@@ -1640,10 +1640,10 @@ async function _f103d() {
     }, 4000);
   } catch(err) {
     // Fallback: show code if clipboard fails
-    const url = await _f103f().catch(()=>'');
+    const url = await _f101e().catch(()=>'');
     if (url) {
       const code = '<iframe src="'+url+'" width="100%" height="100%" frameborder="0" style="border:none;display:block" allowfullscreen></iframe>';
-      _f1044(code);
+      _f1023(code);
     }
     if (btn) { btn.disabled = false; btn.textContent = '📋 Скопировать iframe для Genially'; }
     if (status) { status.textContent = err.message; status.style.color = '#ff7070'; }
@@ -1651,11 +1651,11 @@ async function _f103d() {
 }
 
 
-function _f103e() {
+function _f101d() {
   return window.location.href.replace(/\/[^/]*(\?.*)?$/, '') + '/play.html';
 }
 
-async function _f103f() {
+async function _f101e() {
   const json = JSON.stringify(G);
   try {
     // Try CompressionStream (Chrome 80+, Firefox 113+, Safari 16.4+)
@@ -1679,22 +1679,22 @@ async function _f103f() {
     let bin = '';
     for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
     const b64 = btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-    return _f103e() + '?d=' + b64;
+    return _f101d() + '?d=' + b64;
   } catch(e) {
     // Fallback: plain base64 JSON (no compression)
     const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-    return _f103e() + '?j=' + b64;
+    return _f101d() + '?j=' + b64;
   }
 }
 
-async function _f1040() {
+async function _f101f() {
   const btn = document.getElementById('publishBtn');
   const status = document.getElementById('publishStatus');
   const urlBox = document.getElementById('shareUrlBox');
   const iframeBox = document.getElementById('iframeCodeBox');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Генерация...'; }
   try {
-    const url = await _f103f();
+    const url = await _f101e();
     const iframeCode = '<iframe src="' + url + '" width="100%" height="100%" frameborder="0" style="border:none;display:block" allowfullscreen></iframe>';
     if (urlBox) urlBox.textContent = url;
     if (iframeBox) iframeBox.textContent = iframeCode;
@@ -1705,35 +1705,35 @@ async function _f1040() {
     }
     if (btn) { btn.disabled = false; btn.textContent = '🔄 Обновить ссылку'; }
     try { localStorage.setItem('lastShareUrl', url); } catch(e) {}
-    _f1001('✅ Ссылка готова!');
+    _f1000('✅ Ссылка готова!');
     return {url, iframeCode};
   } catch(err) {
     if (status) { status.textContent = '❌ ' + err.message; status.style.color = '#ff7070'; }
     if (btn) { btn.disabled = false; btn.textContent = '🔄 Попробовать снова'; }
-    _f1001('❌ ' + err.message);
+    _f1000('❌ ' + err.message);
   }
 }
 
-async function _f1041() {
+async function _f1020() {
   const urlBox = document.getElementById('shareUrlBox');
   const url = urlBox && urlBox.textContent && urlBox.textContent.startsWith('http') ? urlBox.textContent : null;
-  if (!url) { const r = await _f1040(); if(r) navigator.clipboard.writeText(r.url).then(()=>_f1001('📋 Скопировано!')).catch(()=>{_f1044(r.url);_f1001('📋 Скопировано!');}); return; }
-  navigator.clipboard.writeText(url).then(()=>_f1001('📋 Ссылка скопирована!')).catch(()=>{_f1044(url);_f1001('📋 Скопировано!');});
+  if (!url) { const r = await _f101f(); if(r) navigator.clipboard.writeText(r.url).then(()=>_f1000('📋 Скопировано!')).catch(()=>{_f1023(r.url);_f1000('📋 Скопировано!');}); return; }
+  navigator.clipboard.writeText(url).then(()=>_f1000('📋 Ссылка скопирована!')).catch(()=>{_f1023(url);_f1000('📋 Скопировано!');});
 }
 
-async function _f1042() {
+async function _f1021() {
   const iframeBox = document.getElementById('iframeCodeBox');
   const code = iframeBox && iframeBox.textContent && iframeBox.textContent.startsWith('<iframe') ? iframeBox.textContent : null;
-  if (!code) { const r = await _f1040(); if(r) navigator.clipboard.writeText(r.iframeCode).then(()=>_f1001('📋 Скопировано!')).catch(()=>{_f1044(r.iframeCode);_f1001('📋 Скопировано!');}); return; }
-  navigator.clipboard.writeText(code).then(()=>_f1001('📋 iframe скопирован!')).catch(()=>{_f1044(code);_f1001('📋 Скопировано!');});
+  if (!code) { const r = await _f101f(); if(r) navigator.clipboard.writeText(r.iframeCode).then(()=>_f1000('📋 Скопировано!')).catch(()=>{_f1023(r.iframeCode);_f1000('📋 Скопировано!');}); return; }
+  navigator.clipboard.writeText(code).then(()=>_f1000('📋 iframe скопирован!')).catch(()=>{_f1023(code);_f1000('📋 Скопировано!');});
 }
 
-async function _f1043() {
-  const url = await _f103f();
+async function _f1022() {
+  const url = await _f101e();
   window.open(url, '_blank');
 }
 
-function _f1044(text) {
+function _f1023(text) {
   const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);
 }
 
@@ -1753,16 +1753,16 @@ const PLAY_TEMPLATE = (function() {
   }
 })();
 
-function _f1045() {
+function _f1024() {
   const jsonStr = JSON.stringify(G)
     .replace(/</g, '\u003c')
     .replace(/>/g, '\u003e')
     .replace(/&/g, '\u0026');
-  // Override _f1046 so it returns embedded data directly
+  // Override _f1025 so it returns embedded data directly
   const decoder = '<scr'+'ipt>\n'
     + 'window.__PRELOADED_DATA__ = ' + jsonStr + ';\n'
     + 'window.__gameDataPromise = Promise.resolve(window.__PRELOADED_DATA__);\n'
-    + 'async function _f1046(){return window.__PRELOADED_DATA__;}\n'
+    + 'async function _f1025(){return window.__PRELOADED_DATA__;}\n'
     + '</scr'+'ipt>';
   return PLAY_TEMPLATE.replace('<!--DECODER-->', decoder);
 }
@@ -1770,30 +1770,30 @@ function _f1045() {
 // ═══════════════════════════════════
 // INIT
 // ═══════════════════════════════════
-function _f1047() {
+function _f1026() {
   const ep = document.getElementById('editorPanel');
   if (!ep) return;
   ep.addEventListener('input', function(e){
     const t = e.target;
     if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT') {
-      if(t.dataset && t.dataset.gk) _f100d(G, t.dataset.gk, t.value);
-      _f1002();
+      if(t.dataset && t.dataset.gk) _f1006(G, t.dataset.gk, t.value);
+      _f1001();
     }
   }, true);
   ep.addEventListener('change', function(e){
     const t = e.target;
     if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT') {
-      if(t.dataset && t.dataset.gk) _f100d(G, t.dataset.gk, t.value);
-      _f1002();
+      if(t.dataset && t.dataset.gk) _f1006(G, t.dataset.gk, t.value);
+      _f1001();
     }
   }, true);
 }
 
 window.addEventListener('DOMContentLoaded', function() {
-  window.addEventListener('resize', ()=>{ if(pvDevice==='desktop') _f1006(); });
-  _f1047();
-  _f100f();
-  setTimeout(()=>_f1006(), 200);
+  window.addEventListener('resize', ()=>{ if(pvDevice==='desktop') _f1003(); });
+  _f1026();
+  _f1008();
+  setTimeout(()=>_f1003(), 200);
 });
 </script>
 </body>
