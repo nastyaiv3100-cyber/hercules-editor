@@ -422,6 +422,16 @@ select option{background:var(--bg-card)}
 </div>
 
 <!-- PUBLISH MODAL -->
+<div class="modal-bg" id="confirmModal" onclick="this.style.display='none'" style="display:none">
+  <div class="modal" style="max-width:340px;padding:24px 28px;text-align:center" onclick="event.stopPropagation()">
+    <div id="confirmMsg" style="font-size:14px;color:var(--cream);margin-bottom:20px;line-height:1.5"></div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn btn-gold" id="confirmOk" style="min-width:80px">Удалить</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('confirmModal').style.display='none'" style="min-width:80px">Отмена</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="publishModal">
   <div class="modal" style="position:relative">
     <button class="modal-close" onclick="closePublish()">✕</button>
@@ -491,6 +501,21 @@ let pvTimer = null, pvDevice = 'desktop';
 // ═══════════════════════════════════
 // LIVE PREVIEW — debounced 600ms
 // ═══════════════════════════════════
+function showConfirm(msg, onOk) {
+  var modal = document.getElementById('confirmModal');
+  var msgEl = document.getElementById('confirmMsg');
+  var okBtn = document.getElementById('confirmOk');
+  if (!modal) { if (onOk) onOk(); return; }
+  msgEl.textContent = msg;
+  modal.style.display = 'flex';
+  var newOk = okBtn.cloneNode(true);
+  okBtn.parentNode.replaceChild(newOk, okBtn);
+  newOk.addEventListener('click', function() {
+    modal.style.display = 'none';
+    if (onOk) onOk();
+  });
+}
+
 function toast(msg, duration=2200) {
   let el = document.getElementById('toast');
   if (!el) { el = document.createElement('div'); el.id = 'toast'; el.className = 'toast'; document.body.appendChild(el); }
@@ -1031,9 +1056,10 @@ function addTask(){
   renderEditor(); schedulePreview();
 }
 function delTask(i){
-  if(!confirm('Удалить задание '+(i+1)+'?')) return;
-  G.puzzles.splice(i,1); openTaskIdx=null;
-  renderEditor(); schedulePreview();
+  showConfirm('Удалить задание ' + (i+1) + '?', function(){
+    G.puzzles.splice(i,1); openTaskIdx=null;
+    renderEditor(); schedulePreview();
+  });
 }
 function dupTask(i){
   const copy = JSON.parse(JSON.stringify(G.puzzles[i]));
