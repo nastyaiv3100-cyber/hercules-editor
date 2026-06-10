@@ -504,22 +504,21 @@ let pvTimer = null, pvDevice = 'desktop';
 // ═══════════════════════════════════
 function resetGame() {
   showConfirm('Сбросить всё? Все данные будут удалены.', function() {
-    Object.assign(G, {
-      start: {badge:'',icon:'',title:'',subtitle:'',description:'',btnText:'Начать',footer:'',bgUrl:''},
-      game: {topIcon:'',topTitle:'',decoEmojis:['⭐','✨','🌟','💫','🎯','🎨','📚','✏️','🔬','🎓'],
-             topSub:'',progressIcon:'',cols:3,rows:2,draftLabel:'',bgUrl:'',puzzleImgUrl:'',revealImgUrl:''},
-      overlays: {errorIcon:'❌',errorTitle:'Неверно!',errorText:'Попробуй ещё раз.',
-                 pictureTitle:'Картинка открыта!',pictureBtnText:'Продолжить',
-                 finalEmblem:'🏆',finalTitle:'Молодец!',finalText:'Все задания выполнены!',playAgainText:'Пройти снова'},
-      colors: {bgDark:'#0B1E4F',bgMid:'#132F73',cyan:'#57D6FF',gold:'#F6C35B',goldLight:'#FFE9A8',
-               sunset:'#FF9B6A',pink:'#F28DB2',violet:'#8A6BFF',green:'#7EDB8A'},
-      style: {border:{color:'rgba(246,195,91,0.6)',width:'2',radius:'4',glow:'rgba(246,195,91,0.2)',glowSize:'60'},cardBg:'',zoomBg:''},
-      textColors: {title:'',subtitle:'',body:'',btn:'',badge:''},
-      sounds: {enabled:true,flip:0.25,error:0.4,win:0.3},
-      settings: {shuffleOptions:true,fuzzyMatch:false,maxErrors:0},
-      lang: {font:'Nunito',math:false},
-      puzzles: []
-    });
+    // Deep reset — напрямую заменяем каждый объект
+    G.start = {badge:'',icon:'',title:'',subtitle:'',description:'',btnText:'Начать',footer:'',bgUrl:''};
+    G.game = {topIcon:'',topTitle:'',decoEmojis:['⭐','✨','🌟','💫','🎯','🎨','📚','✏️','🔬','🎓'],
+              topSub:'',progressIcon:'',cols:3,rows:2,draftLabel:'',bgUrl:'',puzzleImgUrl:'',revealImgUrl:''};
+    G.overlays = {errorIcon:'',errorTitle:'',errorText:'',
+                  pictureTitle:'',pictureBtnText:'',
+                  finalEmblem:'',finalTitle:'',finalText:'',playAgainText:''};
+    G.colors = {bgDark:'#0B1E4F',bgMid:'#132F73',cyan:'#57D6FF',gold:'#F6C35B',goldLight:'#FFE9A8',
+                sunset:'#FF9B6A',pink:'#F28DB2',violet:'#8A6BFF',green:'#7EDB8A'};
+    G.style = {border:{color:'rgba(246,195,91,0.6)',width:'2',radius:'4',glow:'rgba(246,195,91,0.2)',glowSize:'60'},cardBg:'',zoomBg:''};
+    G.textColors = {title:'',subtitle:'',body:'',btn:'',badge:''};
+    G.sounds = {enabled:true,flip:0.25,error:0.4,win:0.3};
+    G.settings = {shuffleOptions:true,fuzzyMatch:false,maxErrors:0};
+    G.lang = {font:'Nunito',math:false};
+    G.puzzles = [];
     openTaskIdx = null;
     showSec('start');
     schedulePreview();
