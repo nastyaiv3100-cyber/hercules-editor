@@ -1008,12 +1008,10 @@ function rTB(p,i){
   }
 
   if(p.type==='sentence'){
-    if(!p.words) p.words=[];
-    let h2 = html;
-    h2 += '<div class="sub-lbl">Правильное предложение (слова через пробел)</div>';
-    h2 += '<input type="text" class="gf" value="'+(p.sentence||'')+'" placeholder="Осень пришла и листья упали" oninput="G.puzzles['+i+'].sentence=this.value;G.puzzles['+i+'].words=this.value.trim().split(/\\s+/).filter(Boolean);schedulePreview()"/>';
-    h2 += '<div class="note note-blue" style="margin-top:8px">Слова перемешиваются и ученик собирает правильный порядок.</div>';
-    return h2;
+    h += '<div class="sub-lbl">Правильное предложение (слова через пробел)</div>';
+    h += '<input type="text" class="gf" value="'+(p.sentence||'')+'" placeholder="Осень пришла и листья упали" oninput="G.puzzles['+i+'].sentence=this.value;G.puzzles['+i+'].words=this.value.trim().split(/\\s+/).filter(Boolean);schedulePreview()"/>';
+    h += '<div class="note note-blue" style="margin-top:8px">Слова перемешиваются и ученик собирает правильный порядок.</div>';
+    return h;
   }
   if(p.type==='textanswer'){
     h+='<div class="sub-lbl">Текст / вопрос</div>';
@@ -1032,12 +1030,19 @@ function toggleT(i){openTaskIdx=openTaskIdx===i?null:i;renderEditor();}
 
 function changeType(i,t){
   G.puzzles[i].type=t; const p=G.puzzles[i];
-  if(t==='truefalse'&&!p.statements) p.statements=[{text:'Утверждение',answer:'true'}];
-  if(t==='match'&&!p.pairs){p.pairs=[{left:'',answer:''}];p.options=[''];}
-  if(t==='multichoice'&&!p.questions) p.questions=[{q:'',options:['А)','Б)','В)','Г)'],answer:0}];
-  if(t==='order'&&!p.items) p.items=[{text:'',answer:'1'}];
-  if(t==='fill'&&!p.items) p.items=[{before:'',after:'',inp:''}];
-  if(t==='wordguess'&&!p.clues) p.clues=[{hint:'Вопрос или подсказка...',answer:''}];
+  // Сбрасываем данные предыдущего типа чтобы не мешали
+  delete p.statements; delete p.pairs; delete p.options;
+  delete p.questions; delete p.items; delete p.clues;
+  delete p.sentence; delete p.words; delete p.text; delete p.answer;
+  // Инициализируем нужные поля для нового типа
+  if(t==='truefalse') p.statements=[{text:'',answer:'true'}];
+  if(t==='match'){p.pairs=[{left:'',answer:''}];p.options=[''];}
+  if(t==='multichoice') p.questions=[{q:'',options:['','','',''],answer:0}];
+  if(t==='order') p.items=[{text:'',answer:'1'}];
+  if(t==='fill') p.items=[{before:'',after:'',inp:''}];
+  if(t==='wordguess') p.clues=[{hint:'',answer:''}];
+  if(t==='sentence'){p.sentence='';p.words=[];}
+  if(t==='textanswer'){p.text='';p.answer='';}
   // Auto-update title when type changes (if still default 'Задание N')
   var _typeTitles={truefalse:'Верно или нет?',match:'Соединение',multichoice:'Выбор ответа',
     order:'Порядок',fill:'Вписать',wordguess:'Свободный ответ',
