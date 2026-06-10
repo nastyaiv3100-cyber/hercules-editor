@@ -610,39 +610,34 @@ else if(p.type==="sentence"){
   const shuffled=[...words].sort(()=>Math.random()-0.5);
   const wrap=document.createElement('div');
   wrap.style.cssText='display:flex;flex-direction:column;gap:10px';
+  // Зона сборки
   const dropZone=document.createElement('div');
   dropZone.style.cssText='min-height:52px;background:rgba(11,30,79,0.4);border:2px dashed rgba(246,195,91,0.35);border-radius:8px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center';
+  const dropHint=document.createElement('span');
+  dropHint.textContent='← сюда';
+  dropHint.style.cssText='color:rgba(246,195,91,0.3);font-size:12px;pointer-events:none';
+  dropZone.appendChild(dropHint);
+  // Банк слов
   const bank=document.createElement('div');
-  bank.style.cssText='display:flex;flex-wrap:wrap;gap:6px;padding:6px 0';
-  const btnStyle='background:rgba(246,195,91,0.15);border:1px solid rgba(246,195,91,0.4);border-radius:6px;padding:6px 12px;color:#f6c35b;font-size:13px;cursor:pointer;font-family:inherit';
-  function createWordBtn(w,inDrop){
+  bank.style.cssText='display:flex;flex-wrap:wrap;gap:6px;padding:6px 0;border-top:1px solid rgba(246,195,91,0.15);margin-top:4px';
+  function addBtn(w,toDrop){
     const b=document.createElement('button');
     b.textContent=w;
-    b.setAttribute('style',btnStyle);
-    b.dataset.inDrop=inDrop?'1':'0';
-    return b;
+    b.style.cssText='background:rgba(246,195,91,0.15);border:1px solid rgba(246,195,91,0.4);border-radius:6px;padding:6px 12px;color:#f6c35b;font-size:13px;cursor:pointer;font-family:inherit;transition:background .1s';
+    b.addEventListener('mouseover',function(){this.style.background='rgba(246,195,91,0.28)';});
+    b.addEventListener('mouseout',function(){this.style.background='rgba(246,195,91,0.15)';});
+    b.addEventListener('click',function(){
+      this.remove();
+      if(dropHint.parentNode===dropZone) dropHint.remove();
+      addBtn(w, !toDrop);
+      if(dropZone.querySelectorAll('button').length===0) dropZone.appendChild(dropHint);
+    });
+    if(toDrop){dropZone.appendChild(b);}
+    else{bank.appendChild(b);}
   }
-  function moveWord(btn){
-    const inDrop=btn.dataset.inDrop==='1';
-    btn.remove();
-    const nb=createWordBtn(btn.textContent,!inDrop);
-    if(inDrop){bank.appendChild(nb);}else{dropZone.appendChild(nb);}
-  }
-  dropZone.addEventListener('click',function(e){
-    const btn=e.target.closest('button');
-    if(btn&&btn.dataset.inDrop==='1') moveWord(btn);
-  });
-  bank.addEventListener('click',function(e){
-    const btn=e.target.closest('button');
-    if(btn&&btn.dataset.inDrop==='0') moveWord(btn);
-  });
-  shuffled.forEach(function(w){bank.appendChild(createWordBtn(w,false));});
-  const hint=document.createElement('div');
-  hint.style.cssText='font-size:11px;color:rgba(246,195,91,0.5);text-align:center';
-  hint.textContent='Нажми на слово чтобы переместить';
+  shuffled.forEach(function(w){addBtn(w,false);});
   wrap.appendChild(dropZone);
   wrap.appendChild(bank);
-  wrap.appendChild(hint);
   zoomBodyEl.appendChild(wrap);
   window.__sentenceCheck__=function(){
     const userWords=Array.from(dropZone.querySelectorAll('button')).map(b=>b.textContent.trim());
