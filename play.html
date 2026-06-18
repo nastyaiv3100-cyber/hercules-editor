@@ -644,6 +644,30 @@ else if(p.type==="sentence"){
     return userWords.join(' ')===words.join(' ');
   };
 }
+else if(p.type==="imageanswer"){
+  const wrap=document.createElement("div");
+  wrap.style.cssText="display:flex;flex-direction:column;gap:12px";
+  if(p.imgUrl){
+    const img=document.createElement("img");
+    img.src=p.imgUrl;
+    img.style.cssText="width:100%;max-height:220px;object-fit:contain;border-radius:8px;background:rgba(0,0,0,0.15)";
+    wrap.appendChild(img);
+  }
+  if(p.text){
+    const txt=document.createElement("div");
+    txt.style.cssText="font-size:14px;color:rgba(248,252,255,0.85);line-height:1.6;text-align:center";
+    txt.innerHTML=p.text;
+    wrap.appendChild(txt);
+  }
+  const inp=document.createElement("input");
+  inp.type="text"; inp.placeholder="Введите ответ...";
+  inp.style.cssText="width:100%;background:rgba(11,30,79,0.5);border:1px solid rgba(246,195,91,0.3);border-radius:6px;padding:10px 14px;color:#f8fcff;font-size:14px;font-family:inherit;outline:none";
+  inp.addEventListener('focus',function(){this.style.borderColor='rgba(246,195,91,0.7)';});
+  inp.addEventListener('blur',function(){this.style.borderColor='rgba(246,195,91,0.3)';});
+  wrap.appendChild(inp);
+  zoomBodyEl.appendChild(wrap);
+  zWordInps=[{inp,answer:p.answer||''}];
+}
 else if(p.type==="textanswer"){
   const wrap=document.createElement("div");
   wrap.style.cssText="display:flex;flex-direction:column;gap:12px";
@@ -682,7 +706,7 @@ else if(p.type==="sentence"){
     if(window.__sentenceCheck__){ok=window.__sentenceCheck__();window.__sentenceCheck__=null;}
     else ok=false;
   }
-  else if(p.type==="wordguess"||p.type==="textanswer"){const _fuzzy2=D.settings&&D.settings.fuzzyMatch;ok=zWordInps.every(({inp,answer})=>fuzzyMatch(inp.value,String(answer),_fuzzy2));if(ok)zWordInps.forEach(({inp})=>inp.classList.add("correct"));else zWordInps.forEach(({inp,answer})=>{if(inp.value.trim().toLowerCase()!==String(answer).toLowerCase())inp.classList.add("wrong");});}
+  else if(p.type==="wordguess"||p.type==="textanswer"||p.type==="imageanswer"){const _fuzzy2=D.settings&&D.settings.fuzzyMatch;ok=zWordInps.every(({inp,answer})=>fuzzyMatch(inp.value,String(answer),_fuzzy2));if(ok)zWordInps.forEach(({inp})=>inp.classList.add("correct"));else zWordInps.forEach(({inp,answer})=>{if(inp.value.trim().toLowerCase()!==String(answer).toLowerCase())inp.classList.add("wrong");});}
 function fuzzyMatch(a, b, allowTypo) {
   var s1 = a.trim().toLowerCase();
   var s2 = b.trim().toLowerCase();
