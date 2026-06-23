@@ -450,6 +450,11 @@ document.addEventListener("DOMContentLoaded", async function() {
     return;
   }
   if (!D) return; // error already shown by loadGameData
+  // Apply check button text
+  var _checkBtn = document.getElementById('zoomSubmit');
+  if(_checkBtn && D.lang && D.lang.checkBtnText){
+    _checkBtn.textContent = D.lang.checkBtnText + ' ✓';
+  }
 
   const s = D.start, g = D.game, o = D.overlays, c = D.colors;
   // Auto-fit grid to puzzle count
@@ -769,7 +774,7 @@ function createTiles(){
   }
 }
 const TILE_ICONS=puzzles.map(p=>{const m=p.title.match(/^(\\S+)/);return m?m[1]:"📌";});
-function createTile(i){const p=puzzles[i];const tile=document.createElement("div");tile.className="puzzle-tile";tile.id="tile-"+i;const inner=document.createElement("div");inner.className="puzzle-tile-inner";const topRow=document.createElement("div");topRow.className="tile-top-row";const hdr=document.createElement("div");hdr.className="tile-header";hdr.textContent=TILE_ICONS[i]+" Задание "+(i+1);const zBtn=document.createElement("button");zBtn.className="tile-zoom-btn";zBtn.textContent="🔍";zBtn.addEventListener("click",e=>{e.stopPropagation();openZoom(i);});topRow.append(hdr,zBtn);const scroll=document.createElement("div");scroll.className="tile-scroll-area";const q=document.createElement("div");q.className="tile-question";q.textContent=p.question;scroll.appendChild(q);const btn=document.createElement("button");btn.className="tile-button";btn.textContent="Выполнить →";btn.addEventListener("click",e=>{e.stopPropagation();openZoom(i);});inner.append(topRow,scroll,btn);tile.appendChild(inner);tile.addEventListener("click",()=>openZoom(i));return tile;}
+function createTile(i){const p=puzzles[i];const tile=document.createElement("div");tile.className="puzzle-tile";tile.id="tile-"+i;const inner=document.createElement("div");inner.className="puzzle-tile-inner";const topRow=document.createElement("div");topRow.className="tile-top-row";const hdr=document.createElement("div");hdr.className="tile-header";hdr.textContent=TILE_ICONS[i]+" "+((window.__gameData__&&window.__gameData__.lang&&window.__gameData__.lang.taskLabel)||"Задание")+" "+(i+1);const zBtn=document.createElement("button");zBtn.className="tile-zoom-btn";zBtn.textContent="🔍";zBtn.addEventListener("click",e=>{e.stopPropagation();openZoom(i);});topRow.append(hdr,zBtn);const scroll=document.createElement("div");scroll.className="tile-scroll-area";const q=document.createElement("div");q.className="tile-question";q.textContent=p.question;scroll.appendChild(q);const btn=document.createElement("button");btn.className="tile-button";btn.textContent=((window.__gameData__&&window.__gameData__.lang&&window.__gameData__.lang.goBtnText)||"Выполнить")+" →";btn.addEventListener("click",e=>{e.stopPropagation();openZoom(i);});inner.append(topRow,scroll,btn);tile.appendChild(inner);tile.addEventListener("click",()=>openZoom(i));return tile;}
 function openTile(index){
 
 const tile=document.getElementById("tile-"+index);if(!tile||tile.classList.contains("disabled"))return;const col=index%COLS,row=Math.floor(index/COLS);tile.innerHTML="";tile.classList.add("disabled");tile.style.cursor="default";const img=document.createElement("div");img.style.cssText='position:absolute;inset:0;background:url("'+window.__G__.g.revealImgUrl+'") no-repeat;background-size:'+(COLS*100)+'% '+(ROWS*100)+'%;background-position:'+(COLS>1?col/(COLS-1)*100:0)+'% '+(ROWS>1?row/(ROWS-1)*100:0)+'%;';tile.appendChild(img);spawnTileWow(tile);spawnBoom(tile);spawnParticles(tile);playSound(flipSound);openedTiles++;updateProgress();if(openedTiles>=TOTAL)setTimeout(showPicture,700);}
