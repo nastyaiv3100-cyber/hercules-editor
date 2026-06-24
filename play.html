@@ -638,42 +638,70 @@ else if(p.type==="multichoice"){(p.questions||[]).forEach((q)=>{let opts=q.optio
 else if(p.type==="wordguess"){const grid=document.createElement("div");grid.className="word-grid";(p.clues||[]).forEach((cl,ci)=>{const row=document.createElement("div");row.className="word-row";const num=document.createElement("div");num.className="word-num";num.textContent=(ci+1)+".";const hint=document.createElement("div");hint.className="word-hint";hint.textContent=cl.hint;const inp=document.createElement("input");inp.type="text";inp.className="inp-base word-inp";inp.placeholder="ответ...";inp.autocomplete="off";inp.addEventListener("keydown",e=>{if(e.key==="Enter")zoomSubmitBtn.click();});zWordInps.push({inp,answer:cl.answer});row.append(num,hint,inp);grid.appendChild(row);});zoomBodyEl.appendChild(grid);setTimeout(()=>zWordInps[0]&&zWordInps[0].inp.focus(),60);}
 
 else if(p.type==="sentence"){
-  const words=(p.words&&p.words.length) ? p.words : (p.sentence||'').trim().split(/\s+/).filter(Boolean);
-  const shuffled=[...words].sort(()=>Math.random()-0.5);
+  // Поддержка нескольких предложений: ученик собирает их по очереди
+  const sentList = (p.sentences && p.sentences.length) ? p.sentences.filter(Boolean) : [p.sentence||''].filter(Boolean);
+  let curSentIdx = 0;
   const wrap=document.createElement('div');
   wrap.style.cssText='display:flex;flex-direction:column;gap:10px';
-  // Зона сборки
+
+  const progressLabel=document.createElement('div');
+  progressLabel.style.cssText='font-size:11px;color:rgba(246,195,91,0.6);text-align:center';
+  if(sentList.length>1) progressLabel.textContent='Предложение 1 из '+sentList.length;
+  wrap.appendChild(progressLabel);
+
   const dropZone=document.createElement('div');
   dropZone.style.cssText='min-height:52px;background:rgba(11,30,79,0.4);border:2px dashed rgba(246,195,91,0.35);border-radius:8px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center';
-  const dropHint=document.createElement('span');
-  dropHint.textContent='← сюда';
-  dropHint.style.cssText='color:rgba(246,195,91,0.3);font-size:12px;pointer-events:none';
-  dropZone.appendChild(dropHint);
-  // Банк слов
   const bank=document.createElement('div');
   bank.style.cssText='display:flex;flex-wrap:wrap;gap:6px;padding:6px 0;border-top:1px solid rgba(246,195,91,0.15);margin-top:4px';
-  function addBtn(w,toDrop){
-    const b=document.createElement('button');
-    b.textContent=w;
-    b.style.cssText='background:rgba(246,195,91,0.15);border:1px solid rgba(246,195,91,0.4);border-radius:6px;padding:6px 12px;color:#f6c35b;font-size:13px;cursor:pointer;font-family:inherit;transition:background .1s';
-    b.addEventListener('mouseover',function(){this.style.background='rgba(246,195,91,0.28)';});
-    b.addEventListener('mouseout',function(){this.style.background='rgba(246,195,91,0.15)';});
-    b.addEventListener('click',function(){
-      this.remove();
-      if(dropHint.parentNode===dropZone) dropHint.remove();
-      addBtn(w, !toDrop);
-      if(dropZone.querySelectorAll('button').length===0) dropZone.appendChild(dropHint);
-    });
-    if(toDrop){dropZone.appendChild(b);}
-    else{bank.appendChild(b);}
-  }
-  shuffled.forEach(function(w){addBtn(w,false);});
+
   wrap.appendChild(dropZone);
   wrap.appendChild(bank);
   zoomBodyEl.appendChild(wrap);
+
+  let currentWords = [];
+  let allCorrect = true;
+
+  function loadSentence(idx){
+    dropZone.innerHTML=''; bank.innerHTML='';
+    const sentence = sentList[idx]||'';
+    currentWords = sentence.trim().split(/\s+/).filter(Boolean);
+    const shuffled=[...currentWords].sort(()=>Math.random()-0.5);
+    const dropHint=document.createElement('span');
+    dropHint.textContent='← сюда';
+    dropHint.style.cssText='color:rgba(246,195,91,0.3);font-size:12px;pointer-events:none';
+    dropZone.appendChild(dropHint);
+    function addBtn(w,toDrop){
+      const b=document.createElement('button');
+      b.textContent=w;
+      b.style.cssText='background:rgba(246,195,91,0.15);border:1px solid rgba(246,195,91,0.4);border-radius:6px;padding:6px 12px;color:#f6c35b;font-size:13px;cursor:pointer;font-family:inherit;transition:background .1s';
+      b.addEventListener('mouseover',function(){this.style.background='rgba(246,195,91,0.28)';});
+      b.addEventListener('mouseout',function(){this.style.background='rgba(246,195,91,0.15)';});
+      b.addEventListener('click',function(){
+        this.remove();
+        if(dropHint.parentNode===dropZone) dropHint.remove();
+        addBtn(w, !toDrop);
+        if(dropZone.querySelectorAll('button').length===0) dropZone.appendChild(dropHint);
+      });
+      if(toDrop){dropZone.appendChild(b);}
+      else{bank.appendChild(b);}
+    }
+    shuffled.forEach(function(w){addBtn(w,false);});
+    if(sentList.length>1) progressLabel.textContent='Предложение '+(idx+1)+' из '+sentList.length;
+  }
+
+  loadSentence(0);
+
   window.__sentenceCheck__=function(){
     const userWords=Array.from(dropZone.querySelectorAll('button')).map(b=>b.textContent.trim());
-    return userWords.join(' ')===words.join(' ');
+    const isCorrect = userWords.join(' ')===currentWords.join(' ');
+    if(!isCorrect){ allCorrect=false; return false; }
+    // Текущее предложение верно — переходим к следующему, если есть
+    curSentIdx++;
+    if(curSentIdx < sentList.length){
+      loadSentence(curSentIdx);
+      return null; // null = не закрывать карточку, просто продолжить
+    }
+    return allCorrect;
   };
 }
 else if(p.type==="imageanswer"){
@@ -735,7 +763,12 @@ else if(p.type==="truefalse"){ok=zTFState.every(s=>s.selected!==null&&s.selected
 else if(p.type==="order"){ok=zOrderInps.every(({inp,answer})=>inp.value.trim()===String(answer));if(ok)zOrderInps.forEach(({inp})=>inp.classList.add("correct"));else zOrderInps.forEach(({inp,answer})=>{if(inp.value.trim()!==String(answer))inp.classList.add("wrong");});}
 else if(p.type==="multichoice"){ok=zMCState.every(s=>s.selected!==null&&s.selected===s.answer);}
 else if(p.type==="sentence"){
-    if(window.__sentenceCheck__){ok=window.__sentenceCheck__();window.__sentenceCheck__=null;}
+    if(window.__sentenceCheck__){
+      const result=window.__sentenceCheck__();
+      if(result===null){return;} // продолжаем со следующим предложением, не закрываем
+      ok=result;
+      window.__sentenceCheck__=null;
+    }
     else ok=false;
   }
   else if(p.type==="wordguess"||p.type==="textanswer"||p.type==="imageanswer"){const _fuzzy2=D.settings&&D.settings.fuzzyMatch;ok=zWordInps.every(({inp,answer})=>fuzzyMatch(inp.value,String(answer),_fuzzy2));if(ok)zWordInps.forEach(({inp})=>inp.classList.add("correct"));else zWordInps.forEach(({inp,answer})=>{if(inp.value.trim().toLowerCase()!==String(answer).toLowerCase())inp.classList.add("wrong");});}
