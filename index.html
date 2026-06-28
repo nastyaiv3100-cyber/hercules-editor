@@ -1039,8 +1039,8 @@ function rTB(p,i){
     </div>`;});
     h+=`<button class="btn btn-dashed btn-sm" onclick="addItem(${i},'pairs',{left:'',answer:''})">+ Пара</button>`;
     h+=`<div class="sub-lbl" style="margin-top:10px">Все варианты (включая ложные)</div>`;
-    h+=`<div class="note note-blue" style="margin-bottom:6px;font-size:10px">Введи все варианты через запятую — правильные и ложные</div>`;
-    h+=`<textarea class="tai" style="min-height:44px;font-size:12px" placeholder="кот, собака, солнце, яблоко, дерево, река" oninput="G.puzzles[${i}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean);schedulePreview()">${(p.options||[]).join(', ')}</textarea>`;
+    h+=`<div class="note note-blue" style="margin-bottom:6px;font-size:10px">Каждый вариант — на новой строке (правильные и ложные). Запятые внутри текста теперь не страшны.</div>`;
+    h+=`<textarea class="tai" style="min-height:64px;font-size:12px" placeholder="кот\nсобака\nсолнце\nяблоко\nдерево\nрека" oninput="G.puzzles[${i}].options=this.value.split('\\n').map(s=>s.trim()).filter(Boolean);schedulePreview()">${(p.options||[]).join('\n')}</textarea>`;
   } else if(p.type==='multichoice'){
     (p.questions||[]).forEach((q,qi)=>{h+=`<div class="mc-qblock">
       <div style="display:flex;gap:5px;margin-bottom:6px">
