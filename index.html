@@ -1771,25 +1771,54 @@ async function publishAndCopy() {
   const status = document.getElementById('publishStatus');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Генерация...'; }
   if (status) { status.textContent = ''; }
-  try {
-    const url = await buildShareURL();
-    const iframeCode = '<iframe src="'+url+'" width="100%" height="100%" frameborder="0" style="border:none;display:block" allowfullscreen></iframe>';
-    try { localStorage.setItem('lastShareUrl', url); } catch(e) {}
-    await navigator.clipboard.writeText(iframeCode);
+
+  function showSuccess() {
     if (btn) { btn.disabled = false; btn.textContent = '✅ Скопировано! Вставьте в Genially'; btn.style.background = '#7edb8a'; }
     if (status) { status.textContent = 'iframe-код в буфере обмена'; status.style.color = '#7edb8a'; }
     setTimeout(() => {
       if (btn) { btn.textContent = '📋 Скопировать iframe для Genially'; btn.style.background = ''; btn.disabled = false; }
     }, 4000);
+  }
+  function makeIframe(url) {
+    return '<iframe src="'+url+'" width="100%" height="100%" frameborder="0" style="border:none;display:block" allowfullscreen></iframe>';
+  }
+
+  // Path 1: ClipboardItem with a Promise payload. Chromium-based browsers keep the
+  // "user activation" granted by the click alive while the promise resolves, so this
+  // survives the (sometimes slow) compression step in buildShareURL() — unlike a plain
+  // writeText() called after an await, which can lose permission on larger games.
+  if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+    try {
+      const textPromise = (async () => {
+        const url = await buildShareURL();
+        try { localStorage.setItem('lastShareUrl', url); } catch(e) {}
+        return makeIframe(url);
+      })();
+      const blobPromise = textPromise.then(text => new Blob([text], {type:'text/plain'}));
+      await navigator.clipboard.write([ new ClipboardItem({ 'text/plain': blobPromise }) ]);
+      showSuccess();
+      return;
+    } catch(e) { /* fall through to next method */ }
+  }
+
+  // Path 2: direct writeText (works fine when buildShareURL() resolves quickly)
+  try {
+    const url = await buildShareURL();
+    try { localStorage.setItem('lastShareUrl', url); } catch(e) {}
+    const iframeCode = makeIframe(url);
+    await navigator.clipboard.writeText(iframeCode);
+    showSuccess();
+    return;
   } catch(err) {
-    // Fallback: show code if clipboard fails
+    // Path 3: legacy execCommand fallback
     const url = await buildShareURL().catch(()=>'');
     if (url) {
-      const code = '<iframe src="'+url+'" width="100%" height="100%" frameborder="0" style="border:none;display:block" allowfullscreen></iframe>';
-      fallbackCopy(code);
+      const code = makeIframe(url);
+      const ok = fallbackCopy(code);
+      if (ok) { showSuccess(); return; }
     }
     if (btn) { btn.disabled = false; btn.textContent = '📋 Скопировать iframe для Genially'; }
-    if (status) { status.textContent = err.message; status.style.color = '#ff7070'; }
+    if (status) { status.textContent = 'Не удалось скопировать автоматически: ' + err.message + '. Попробуйте ещё раз или скопируйте вручную.'; status.style.color = '#ff7070'; }
   }
 }
 
@@ -1877,7 +1906,11 @@ async function openGamePreview() {
 }
 
 function fallbackCopy(text) {
-  const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);
+  const t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();
+  let ok=false;
+  try { ok = document.execCommand('copy'); } catch(e) { ok=false; }
+  document.body.removeChild(t);
+  return ok;
 }
 
 
