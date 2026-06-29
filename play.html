@@ -219,6 +219,14 @@
     .match-arrow{color:rgba(246,195,91,0.5);font-size:18px;text-align:center;}
     .match-sel{background:rgba(19,47,115,0.4);border:1px solid rgba(87,214,255,0.25);border-radius:2px;padding:8px 10px;color:var(--white);font-family:var(--font-body);font-size:12px;outline:none;cursor:pointer;}
     .match-sel.correct{border-color:var(--green);}
+    .match-sel-wrap{position:relative;}
+    .match-sel-wrap .match-sel-display{min-height:18px;}
+    .match-sel-wrap.correct .match-sel-display{border-color:var(--green);}
+    .match-sel-list{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:80;background:#132f73;border:1px solid rgba(87,214,255,0.35);border-radius:4px;max-height:240px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+    .match-sel-wrap.open .match-sel-list{display:block;}
+    .match-sel-option{padding:8px 10px;font-size:12px;color:var(--white);cursor:pointer;font-family:var(--font-body);}
+    .match-sel-option:hover{background:rgba(87,214,255,0.18);}
+    .match-sel-display .katex,.match-sel-option .katex{font-size:1em;}
     .order-row{display:flex;align-items:center;gap:10px;}
     .order-item{flex:1;font-family:var(--font-hdr);font-size:13px;color:var(--gold);padding:8px 14px;background:rgba(246,195,91,0.08);border:1px solid rgba(246,195,91,0.2);border-radius:2px;}
     .order-num-inp{width:60px;text-align:center;}
@@ -602,6 +610,39 @@ function playSound(a){if(!soundEnabled||!a)return;try{a.currentTime=0;a.play();}
 function updateProgress(){progressTextEl.textContent=openedTiles+" / "+TOTAL;}
 zoomCloseBtn.addEventListener("click",()=>{zoomOverlay.classList.remove("active");zoomActive=false;window.__sentenceCheck__=null;});
 zoomOverlay.addEventListener("click",e=>{if(e.target===zoomOverlay){zoomOverlay.classList.remove("active");zoomActive=false;}});
+function createMatchDropdown(opts){
+  const wrap=document.createElement("div");wrap.className="match-sel-wrap";
+  const display=document.createElement("div");display.className="match-sel match-sel-display";display.textContent="— выбери —";
+  const list=document.createElement("div");list.className="match-sel-list";
+  const state={value:""};
+  opts.forEach(opt=>{
+    const item=document.createElement("div");item.className="match-sel-option";item.textContent=opt;item.dataset.value=opt;
+    item.addEventListener("click",function(e){
+      e.stopPropagation();
+      state.value=opt;
+      display.innerHTML=item.innerHTML; // copy already-rendered (KaTeX) markup if present
+      wrap.classList.remove("open");
+    });
+    list.appendChild(item);
+  });
+  display.addEventListener("click",function(e){
+    e.stopPropagation();
+    document.querySelectorAll(".match-sel-wrap.open").forEach(function(w){if(w!==wrap)w.classList.remove("open");});
+    wrap.classList.toggle("open");
+  });
+  wrap.append(display,list);
+  return {
+    el:wrap,
+    get value(){return state.value;},
+    set value(v){state.value=v;display.textContent=v||"— выбери —";},
+    classList:wrap.classList
+  };
+}
+document.addEventListener("click",function(e){
+  if(!e.target.closest(".match-sel-wrap")){
+    document.querySelectorAll(".match-sel-wrap.open").forEach(function(w){w.classList.remove("open");});
+  }
+});
 function shouldShuffle(p){
   // По умолчанию перемешивание ВКЛЮЧЕНО, если учитель явно не выключил его для этого задания
   return p.shuffle!==false;
@@ -642,7 +683,9 @@ else if(p.type==="match"){const grid=document.createElement("div");grid.classNam
     _pairs = [..._pairs].sort(()=>Math.random()-0.5);
     _opts = [..._opts].sort(()=>Math.random()-0.5);
   }
-  _pairs.forEach((pair)=>{const lbl=document.createElement("div");lbl.className="match-left";lbl.textContent=pair.left;const arr=document.createElement("div");arr.className="match-arrow";arr.textContent="→";const sel=document.createElement("select");sel.className="match-sel";const ph=document.createElement("option");ph.value="";ph.textContent="— выбери —";sel.appendChild(ph);_opts.forEach(opt=>{const o=document.createElement("option");o.value=opt;o.textContent=opt;sel.appendChild(o);});zMatchSels.push({sel,answer:pair.answer});grid.append(lbl,arr,sel);});zoomBodyEl.appendChild(grid);}
+  _pairs.forEach((pair)=>{const lbl=document.createElement("div");lbl.className="match-left";lbl.textContent=pair.left;const arr=document.createElement("div");arr.className="match-arrow";arr.textContent="→";
+    const sel=createMatchDropdown(_opts);
+    zMatchSels.push({sel,answer:pair.answer});grid.append(lbl,arr,sel.el);});zoomBodyEl.appendChild(grid);}
 else if(p.type==="truefalse"){const list=document.createElement("div");list.className="tf-list";
   let _tfStatements = p.statements||[];
   if(shouldShuffle(p)){
